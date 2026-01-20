@@ -12,7 +12,6 @@
             font-family: 'Roboto', sans-serif;
             background-color: #f0f4f8;
             overflow-x: hidden;
-            margin: 0;
         }
 
         #main-canvas {
@@ -41,6 +40,11 @@
             background-color: #ebf4ff;
         }
 
+        .selected {
+            border-color: #3b82f6 !important;
+            background-color: #eff6ff !important;
+        }
+
         .correct {
             background-color: #c6f6d5 !important;
             border-color: #48bb78 !important;
@@ -52,6 +56,12 @@
             border-color: #f56565 !important;
             color: #742a2a !important;
         }
+
+        #progress-container {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
@@ -59,17 +69,19 @@
     <canvas id="main-canvas"></canvas>
 
     <div id="quiz-container" class="max-w-3xl w-full relative z-10">
+        <!-- Αρχική Οθόνη -->
         <div id="start-screen" class="glass-card rounded-3xl p-8 text-center">
             <h1 class="text-3xl font-bold text-blue-800 mb-4">ΣΓΣ ΠΑΛΙΑ ΘΕΜΑΤΑ</h1>
-            <p class="text-gray-600 mb-8">Ένα διαδραστικό τεστ 25 ερωτήσεων βασισμένο στην ύλη σας.</p>
-            <div id="progress-container" class="flex justify-center mb-6">
-                <canvas id="progress-canvas" width="120" height="120"></canvas>
+            <p class="text-gray-600 mb-8">Ολοκληρωμένο διαδραστικό τεστ 25 ερωτήσεων βασισμένο στις σημειώσεις σας.</p>
+            <div id="progress-container">
+                <canvas id="progress-canvas" width="100" height="100"></canvas>
             </div>
-            <button onclick="startQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-10 rounded-full shadow-lg transition-all transform hover:scale-105">
+            <button onclick="startQuiz()" class="mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-10 rounded-full shadow-lg transition-all transform hover:scale-105">
                 Έναρξη Τεστ
             </button>
         </div>
 
+        <!-- Οθόνη Ερωτήσεων -->
         <div id="question-screen" class="glass-card rounded-3xl p-8 hidden">
             <div class="flex justify-between items-center mb-6">
                 <span id="question-number" class="text-sm font-bold text-blue-500 uppercase tracking-widest">Ερώτηση 1 / 25</span>
@@ -78,20 +90,25 @@
                 </div>
             </div>
             
-            <h2 id="question-text" class="text-xl font-bold text-gray-800 mb-6 leading-tight">
-                Φόρτωση ερώτησης...
-            </h2>
+            <p id="multi-hint" class="text-xs text-orange-600 font-bold mb-2 hidden uppercase tracking-tighter">● Επιλέξτε όλες τις σωστές απαντήσεις</p>
+            <h2 id="question-text" class="text-xl font-bold text-gray-800 mb-6 leading-tight"></h2>
 
-            <div id="options-list" class="space-y-3">
+            <div id="options-list" class="space-y-3"></div>
+
+            <div class="mt-8 flex justify-between items-center">
+                <div id="feedback-msg" class="text-sm font-bold"></div>
+                <div class="flex gap-2">
+                    <button id="submit-btn" onclick="submitMultiAnswer()" class="hidden bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-xl transition-all">
+                        Υποβολή
+                    </button>
+                    <button id="next-btn" onclick="nextQuestion()" class="hidden bg-gray-800 hover:bg-black text-white font-bold py-2 px-8 rounded-xl transition-all">
+                        Επόμενη
+                    </button>
                 </div>
-
-            <div class="mt-8 flex justify-end">
-                <button id="next-btn" onclick="nextQuestion()" class="hidden bg-gray-800 hover:bg-black text-white font-bold py-2 px-8 rounded-xl transition-all">
-                    Επόμενη
-                </button>
             </div>
         </div>
 
+        <!-- Οθόνη Αποτελεσμάτων -->
         <div id="result-screen" class="glass-card rounded-3xl p-10 text-center hidden">
             <h2 class="text-4xl font-bold text-blue-900 mb-4">Τέλος Τεστ!</h2>
             <p class="text-xl text-gray-700 mb-6">Το τελικό σας σκορ είναι:</p>
@@ -105,25 +122,302 @@
 
     <script>
         const questions = [
-            { q: "Τα κεντρικά ή λειτουργικά φύματα των δοντιών της άνω γνάθου είναι:", options: ["Τα παρειακά φύματα των προγομφίων και γομφίων της άνω γνάθου", "Τα εγγύς υπερώια φύματα των γομφίων και τα υπερώια φύματα των προγομφίων της ανω γνάθου", "Τα παρειακά φύματα των προγομφίων και τα υπερώια φύματα των γομφίων της ανω γνάθου", "Τα υπερώια φύματα των γομφίων και προγομφίων της άνω γνάθου", "Τα υπερώια φύματα των γομφίων της άνω γνάθου"], correct: 3 },
-            { q: "Οι οδοντικές επαφές κατά την παραλειτουργία περιλαμβάνουν:", options: ["Σφίξιμο των δοντιών και της κάτω γνάθου", "Μυλική απόκλιση με εγγύς ή άπω κατεύθυνση", "Θόρυβο από κτύπο των δοντιών", "Άσκηση αυξημένων δυνάμεων δήξης", "χελεογλωσσικη η παρειογλωσσικη αποκλιση των δοντιων", "Όλα τα παραπάνω"], correct: 5 },
-            { q: "Η μη εργαζόμενη (ή αντισταθμίζουσα) πλευρά αναφέρεται:", options: ["Στη διαδρομή του κονδύλου προς τα έξω και μπροστά", "Στη διαδρομή του κονδύλου προς τα έξω και πίσω", "Στην πλευρά της κάτω γνάθου που κινείται προς τη μέση γραμμή", "Στην πλευρά μακριά από τη μέση γραμμή", "Στην πλευρά που μασάει καλύτερα το άτομο"], correct: 2 },
-            { q: "Κατά την κλινική ανάλυση της σύγκλεισης εξετάζονται κυρίως:", options: ["Η καταγραφή μέγιστης συναρμογής", "Η ολίσθηση από την πρώτη επαφή στη μέγιστη συναρμογή", "Ο πόνος στην ΚΓΔ", "Η κινητικότητα των δοντιών", "Οι προωρες επαφες στην μη εργαζομενη πλευρα και στην πλαγιολισθηση", "ολα τα παραπανω"], correct: 5 },
-            { q: "Η αντιμετώπιση της συγκλεισιακής δυσαισθησίας περιλαμβάνει:", options: ["Φυσιοθεραπεία", "Εξισορρόπηση σύγκλεισης", "Χειρουργική επέμβαση", "Αριστη επικοινωνια μεταξυ ασθενους-οδοντιατρου", "Πρώιμη αναγνώριση, γενικές παρεμβάσεις και εξηγήσεις"], correct: 3, 4 },
-            { q: "Η ΚΓΔ σε σχεση με αλλεσ αρθρωσεις εχει τα παρακατω μοναδικα χαρακτηριστικα:", options: ["Υαλώδη χόνδρο σε κονδυλο-γληνη", "Ινώδη χόνδρο (ινοχόνδρινο ιστό)", "Οι κινησεις στην ΚΓΔ χαρακτηριζονται απο περιστροφη και αναπηδηση", "Οι κινησεις στην ΚΓΔ χαρακτηριζονται απο περιστροφη και μεταπηδηση", "Η δεξια και η αριστερη αρθρωση συντονιζονται και λειτουργουν ταυτοχρονα"], correct: 1, 3, 4 },
-            { q: "Ανατομικός παράγοντας που παίζει σημαντικό ρόλο στις κινήσεις της ΚΓ είναι:", options: ["Η κονδυλική καθοδήγηση", "Ο κεντρικός βηματοδότης", "μασητηριοι μυς, νευρα, συνδεσμοι", "Μεγιστη συναρμογη", "τομικη καθοδηγηση"], correct: 0, 1, 2, 4 },
-            { q: "Η σύνθετη κίνηση της κάτω γνάθου διαχωρίζεται σε:", options: ["Περιστροφή και αναπήδηση", "Περιστροφή και μετατόπιση", "Πλαγιολίσθηση και προολίσθηση", "Μετατόπιση και αναπήδηση"], correct: 1 },
-            { q: "Στη σύγκλειση κυνοδοντικής προστασίας κατά την πλαγιολίσθηση:", options: ["Να υπάρχει συνεχής επαφή μεταξύ των ανταγωνιστικών φυμάτων των οπισθίων δοντιών στη μη εργαζόμενη πλευρά", "Πρέπει να πραγματοποιούνται επαφές κατά την πλαγιολίσθηση τόσο στα πρόσθια όσο και στα οπίσθια δόντια στην εργαζόμενη και στη μη εργαζόμενη πλευρά", "Στην εργαζόμενη καθοδηγεί ο κυνόδοντας χωρίς επαφή στα πίσω", "Κατά την πλαγιολίσθηση, στην εργαζόμενη πλευρά, πρέπει να συμμετέχουν και να καθοδηγούν την κίνηση, ταυτόχρονα όσο το δυνατόν περισσότερα από την ομάδα των προσθίων αλλά και των οπισθίων δοντιών"], correct: 2 },
-            { q: "Οι μυϊκές άτρακτοι παρέχουν πληροφορίες για:", options: ["Το μήκος και τις μεταβολές μήκους των ανασπώντων μυών", "Την τάση του μυός", "Τα κεντρομολα επώδυνα ερεθίσματα", "Την διαταση του μυος και την προκληση μυοτατικου αντανακλαστικου"], correct: 0, 3 },
-            { q: "Στα αντανακλαστικά της κάτω γνάθου περιλαμβάνονται:", options: ["Η περίοδος σιωπής", "Το κλείσιμο (ανάσπαση) της κάτω γνάθου", "Ο μασητικός κύκλος", "Η προολίσθηση, πλαγιολισθηση", " αντανακλαστικο σταθεροποιησης της κατω γναθου"], correct: 1, 4 },
-            { q: "Η κίνηση Bennett περιγράφει:", options: ["Την πλάγια κίνηση του εργαζόμενου κονδύλου", "Την περιστροφική κίνηση", "Την κίνηση του μη εργαζόμενου κονδύλου", "Την προολίσθηση"], correct: 0 },
-            { q: "Οι κινήσεις της κάτω γνάθου ταξινομούνται κυρίως σε:", options: ["Ρυθμικές", "Νευρομυϊκές", "Εκούσιες", "Αντανακλαστικές"], correct: 2 },
-            { q: "Ο διάρθριος δίσκος:", options: ["Αποτελείται από υαλώδη χόνδρο", "Χωρίζει την ΚΓΔ σε άνω και κάτω θάλαμο", "Είναι σταθερά κολλημένος στο κρανίο", "Είναι αγγειοβριθής"], correct: 1 },
-            { q: "Ο βαθμός απώλειας οδοντικής δομής εξαρτάται από:", options: ["Ύπαρξη στατικού σφιξίματος ή δυναμικού τριξίματος", "Την ηλικία μόνο", "Το χρώμα των δοντιών", "Τη στοματική υγιεινή"], correct: 0 },
-            { q: "Στους ανασπώντες την κάτω γνάθο μύες ανήκει ο:", options: ["Έξω πτερυγοειδής", "Γναθοϋοειδής", "Μασητήρας", "Διγάστορας"], correct: 2 },
-            { q: "Η αποδεκτή θεραπευτική σύγκλειση χαρακτηρίζεται από:", options: ["Απόδοση αποδεκτής ΚΔΣ με κατάλληλες επαφές", "Μόνο πρόσθια καθοδήγηση", "Πλήρη εξισορρόπηση σε όλες τις κινήσεις", "Σύμπτωση CR και CO πάντα"], correct: 0 },
-            { q: "Μέθοδος για τον καθορισμό της ΚΔΣ είναι:", options: ["Ακτινογραφία", "Καταγραφή ΚΔ ανάπαυσης, σύγκλεισης και ελεύθερου χώρου", "Η αίσθηση του ασθενούς", "Ο προσανατολισμός του επιπέδου"], correct: 2 },
-            { q: "Η κεντρική θέση (CR) είναι σημαντική γιατί:", options: ["Είναι η μόνη θέση μάσησης", "Είναι ανεξάρτητη από δόντια και αναπαραγώγιμη", "Είναι η θέση μέγιστης δύναμης", "Εκεί τα δόντια έχουν τις περισσότερες επαφές"], correct: 1 },
-            { q: "Το πρωτογενές τραύμα σύγκλεισης προκαλείται από:", options: ["Περιοδοντίτιδα", "Υπερβολικές δυνάμεις σε υγιείς περιοδοντικούς ιστούς", "Μικρές δυνάμεις σε ασθενείς ιστούς", "Τερηδόνα"], correct: 1 },
-            { q: "Στον άξονα Ι των RDC/TMD, η Ομάδα ΙΙ αφορά:", options: ["Μυϊκές διαταραχές", "Αρθρικές διαταραχές", "Πρόσθια
+            { 
+                q: "Τα κεντρικά ή λειτουργικά φύματα των δοντιών της άνω γνάθου είναι:", 
+                options: ["Τα παρειακά φύματα των προγομφίων και γομφίων της άνω γνάθου", "Τα εγγύς υπερώια φύματα των γομφίων και τα υπερώια φύματα των προγομφίων της ανω γνάθου", "Τα παρειακά φύματα των προγομφίων και τα υπερώια φύματα των γομφίων της ανω γνάθου", "Τα υπερώια φύματα των γομφίων και προγομφίων της άνω γνάθου", "Τα υπερώια φύματα των γομφίων της άνω γνάθου"], 
+                correct: [3] 
+            },
+            { 
+                q: "Οι οδοντικές επαφές κατά την παραλειτουργία περιλαμβάνουν:", 
+                options: ["Σφίξιμο των δοντιών και της κάτω γνάθου", "Μυλική απόκλιση με εγγύς ή άπω κατεύθυνση", "Θόρυβο από κτύπο των δοντιών", "Άσκηση αυξημένων δυνάμεων δήξης", "χελεογλωσσικη η παρειογλωσσικη αποκλιση των δοντιων", "Όλα τα παραπάνω"], 
+                correct: [5] 
+            },
+            { 
+                q: "Η μη εργαζόμενη (ή αντισταθμίζουσα) πλευρά αναφέρεται:", 
+                options: ["Στη διαδρομή του κονδύλου προς τα έξω και μπροστά", "Στη διαδρομή του κονδύλου προς τα έξω και πίσω", "Στην πλευρά της κάτω γνάθου που κινείται προς τη μέση γραμμή", "Στην πλευρά μακριά από τη μέση γραμμή", "Στην πλευρά που μασάει καλύτερα το άτομο"], 
+                correct: [2] 
+            },
+            { 
+                q: "Κατά την κλινική ανάλυση της σύγκλεισης εξετάζονται κυρίως:", 
+                options: ["Η καταγραφή μέγιστης συναρμογής", "Η ολίσθηση από την πρώτη επαφή στη μέγιστη συναρμογή", "Ο πόνος στην ΚΓΔ", "Η κινητικότητα των δοντιών", "Οι προωρες επαφες στην μη εργζομενη πλευρα και στην πλαγιολισθηση", "ολα τα παραπανω"], 
+                correct: [5] 
+            },
+            { 
+                q: "Η αντιμετώπιση της συγκλεισιακής δυσαισθησίας περιλαμβάνει:", 
+                options: ["Φυσιοθεραπεία", "Εξισορρόπηση σύγκλεισης", "Χειρουργική επέμβαση", "Αριστη επικοινωνια μεταξυ ασθενους-οδοντιατρου", "Πρώιμη αναγνώριση, γενικές παρεμβάσεις και εξηγήσεις"], 
+                correct: [3, 4] 
+            },
+            { 
+                q: "Η ΚΓΔ σε σχεση με αλλεσ αρθρωσεις εχει τα παρακατω μοναδικα χαρακτηριστικα:", 
+                options: ["Υαλώδη χόνδρο σε κονδυλο-γληνη", "Ινώδη χόνδρο (ινοχόνδρινο ιστό)", "Οι κινησεις στην ΚΓΔ χαρακτηριζονται απο περιστροφη και αναπηδηση", "Οι κινησεις στην ΚΓΔ χαρακτηριζονται απο περιστροφη και μεταπηδηση", "Η δεξια και η αριστερη αρθρωση συντονιζονται και λειτουργουν ταυτοχρονα"], 
+                correct: [1, 3, 4] 
+            },
+            { 
+                q: "Ανατομικός παράγοντας που παίζει σημαντικό ρόλο στις κινήσεις της ΚΓ είναι:", 
+                options: ["Η κονδυλική καθοδήγηση", "Ο κεντρικός βηματοδότης", "μασητηριοι μυς, νευρα, συνδεσμοι", "Μεγιστη συναρμογη", "τομικη καθοδηγηση"], 
+                correct: [0, 1, 2, 4] 
+            },
+            { 
+                q: "Η σύνθετη κίνηση της κάτω γνάθου διαχωρίζεται σε:", 
+                options: ["Περιστροφή και αναπήδηση", "Περιστροφή και μετατόπιση", "Πλαγιολίσθηση και προολίσθηση", "Μετατόπιση και αναπήδηση"], 
+                correct: [1] 
+            },
+            { 
+                q: "Στη σύγκλειση κυνοδοντικής προστασίας κατά την πλαγιολίσθηση:", 
+                options: ["Να υπάρχει συνεχής επαφή μεταξύ των ανταγωνιστικών φυμάτων των οπισθίων δοντιών στη μη εργαζόμενη πλευρά", "Πρέπει να πραγματοποιούνται επαφές κατά την πλαγιολίσθηση τόσο στα πρόσθια όσο και στα οπίσθια δόντια στην εργαζόμενη και στη μη εργαζόμενη πλευρά", "Στην εργαζόμενη καθοδηγεί ο κυνόδοντας χωρίς επαφή στα πίσω", "Κατά την πλαγιολίσθηση, στην εργαζόμενη πλευρά, πρέπει να συμμετέχουν και να καθοδηγούν την κίνηση"], 
+                correct: [2] 
+            },
+            { 
+                q: "Οι μυϊκές άτρακτοι παρέχουν πληροφορίες για:", 
+                options: ["Το μήκος και τις μεταβολές μήκους των ανασπώντων μυών", "Την τάση του μυός", "Τα κεντρομολα επώδυνα ερεθίσματα", "Την διαταση του μυος και την προκληση μυοτατικου αντανακλαστικου"], 
+                correct: [0, 3] 
+            },
+            { 
+                q: "Στα αντανακλαστικά της κάτω γνάθου περιλαμβάνονται:", 
+                options: ["Η περίοδος σιωπής", "Το κλείσιμο (ανάσπαση) της κάτω γνάθου", "Ο μασητικός κύκλος", "Η προολίσθηση, πλαγιολισθηση", "αντανακλαστικο σταθεροποιησης της κατω γναθου"], 
+                correct: [1, 4] 
+            },
+            { q: "Η κίνηση Bennett περιγράφει:", options: ["Την πλάγια κίνηση του εργαζόμενου κονδύλου", "Την περιστροφική κίνηση", "Την κίνηση του μη εργαζόμενου κονδύλου", "Την προολίσθηση"], correct: [0] },
+            { 
+                q: "Οι κινήσεις της κάτω γνάθου ταξινομούνται σε:", 
+                options: ["Ρυθμικές", "Νευρομυϊκές", "Εκούσιες", "Αντανακλαστικές"], 
+                correct: [0, 2, 3] 
+            },
+            { 
+                q: "Ο διάρθριος δίσκος:", 
+                options: ["Αποτελείται από πυκνά οργανωμένες ίνες κολλαγόνου τύπου Ι και ΙΙ", "Χωρίζει την κροταφογναθική διάρθρωση σε άνω και κάτω θάλαμο", "Οι σύνδεσμοι του επιτρέπουν στο δίσκο να περιστρέφεται γύρω από τον κόνδυλο και να ολισθαίνει προς τα πίσω", "Η οπίσθια πρόσφυσή του είναι η δίστιβη ζώνη", "Η πρόσθια πρόσφυσή του είναι η δίστιβη ζώνη"], 
+                correct: [1, 3] 
+            },
+            { 
+                q: "Ο βαθμός απώλειας της οδοντικής δομής ποικίλει σε διάφορα άτομα και εξαρτάται από:", 
+                options: ["Την ύπαρξη στατικού σφιξίματος ή δυναμικού τριξίματος των δοντιών (Βρυγμός)", "Την κινητικότητα και διευθέτηση των δοντιών", "Την αντοχή στην αποτριβή και την περιεκτικότητα σε ανόργανα συστατικά της αδαμαντίνης", "Την ανάπτυξη δύναμης δήξης (συγκλεισιακής δυνάμεων)"], 
+                correct: [0, 1, 2, 3] 
+            },
+            { 
+                q: "Στους ανασπώντες την κάτω γνάθο μύες ανήκουν:", 
+                options: ["Έσω πτερυγοειδής", "Έξω πτερυγοειδής", "Μασητήρας", "Κροταφίτης", "Γναθοϋοειδής"], 
+                correct: [0, 2, 3] 
+            },
+            { 
+                q: "Η αποδεκτή θεραπευτική σύγκλειση χαρακτηρίζεται από:", 
+                options: ["Απόδοση αποδεκτής κάθετης διάστασης σύγκλεισης (ΚΔΣ), με κατάλληλες οδοντικές επαφές", "Τύπο σύγκλεισης ομαδικών επαφών", "Απόδοση συγκεκριμένου τύπου οδοντικών επαφών, ο οποίος απαιτεί επαφές φυμάτων βοθρίων και φυμάτων μορών οριακών ακρολοφιών, ώστε να επιτευχθεί συγκλεισιακή σταθερότητα", "Πρόσθια καθοδήγηση της σύγκλεισης", "Σύμπτωση της μέγιστης συναρμογής με την κεντρική σχέση της κάτω γνάθου"], 
+                correct: [0, 2, 3, 4] 
+            },
+            { 
+                q: "Μέθοδοι που χρησιμοποιούνται για τον καθορισμό της κατακόρυφης διάστασης σύγκλεισης (ΚΔΣ) είναι:", 
+                options: ["Ο προσανατολισμός του μασητικού επιπέδου (επιπέδου σύγκλεισης)", "Η καταγραφή της μέγιστης συναρμογής", "Καταγραφή της κατακόρυφης διάστασης σε ανάπαυση της κάτω γνάθου, της κατακόρυφης διάστασης σε σύγκλειση και του ελεύθερου μεσοφραγματικού χώρου", "Πλάγια κεφαλομετρική ακτινογραφία", "Αισθητική του προσώπου"], 
+                correct: [2, 3, 4] 
+            },
+            { 
+                q: "Γιατί η κεντρική θέση (ή σχέση) της κάτω γνάθου είναι σημαντική;", 
+                options: ["Γιατί την καταγράφουμε σε νωδούς ασθενείς.", "Γιατί σε αυτήν παρατηρείται και η μέγιστη συναρμογή των δοντιών.", "Γιατί είναι η θέση όπου κατασκευάζονται όλες οι ακίνητες προσθετικές αποκαταστάσεις.", "Γιατί είναι η φυσιολογική θέση του κονδύλου στην κροταφική γλήνη και είναι αναπαραγώγιμη.", "Γιατί είναι ανεξάρτητη από οδοντικές επαφές."], 
+                correct: [0, 3, 4] 
+            },
+            { 
+                q: "Το πρωτογενές τραύμα σύγκλεισης προκαλείται:", 
+                options: ["Από την μετανάστευση των δοντιών στην οπίσθια ζώνη που ακολουθείται από μετακινήσεις προσθίων δοντιών.", "Από υπερβολικές δυνάμεις που ασκούνται σε δόντια αυξημένη κινητικότητα (βαθμού 2).", "Από υπερβολικές, μη φυσιολογικές δυνάμεις που ασκούνται σε δόντια με υγιείς περιοδοντικούς ιστούς.", "Από παλινδρομικές δυνάμεις που ασκούνται σε δόντια με περιοδοντική νόσο και οστική απώλεια.", "Από δυνάμεις που αναπτύσσονται εξαιτίας της ύπαρξης πρόωρων επαφών σε δόντια με φλεγμονή των ιστών."], 
+                correct: [2] 
+            },
+            { 
+                q: "Με βάση τα κλινικά ευρήματα του άξονα Ι των Ερευνητικών Διαγνωστικών Κριτηρίων για Κροταφογναθικές Διαταραχές (RDC/TMD) οι ομάδες των ασθενών διακρίνονται:", 
+                options: ["Ομάδα Ι με μυαλγία και μυοσίτιδα, Ομάδα ΙΙ με αρθραλγία, Ομάδα ΙΙΙ με υπεξάρθρημα ή εξάρθρημα του κονδύλου.", "Ομάδα Ι με Περιορισμένη κινητικότητα της κάτω γνάθου, Ομάδα ΙΙ με καταγραφή περισσότερων από 4 επεισόδια βρυγμού...", "B+C", "Ομάδα Ι με Μυϊκές διαταραχές, Ομάδα ΙΙ με πρόσθια παρεκτόπιση του διάρθριου δίσκου, Ομάδα ΙΙΙ με Αρθρικές διαταραχές.", "Ομάδα Ι με ελαφριά δυσλειτουργία, Ομάδα ΙΙ με μέτρια δυσλειτουργία, Ομάδα ΙΙΙ με βαριά δυσλειτουργία."], 
+                correct: [3] 
+            },
+            { 
+                q: "Οι διαταραχές της σύγκλεισης στην τάξη Ι περιλαμβάνουν:", 
+                options: ["Βαθιά υπερσύγκλειση και ανοιχτή δήξη", "Οι κυνόδοντες στην κάτω γνάθο εντοπίζονται σε πιο άπω θέση σε σχέση με τους άνω κυνόδοντες", "Πρόσθια και οπίσθια σταυροειδή σύγκλειση", "Παρέκκλιση μέσης γραμμής", "Η κάτω γνάθος παρουσιάζει πιο πρόσθια θέση από τη φυσιολογική"], 
+                correct: [0, 2, 3] 
+            },
+            { 
+                q: "Η θέση του διάρθριου δίσκου στη μέγιστη συναρμογή (ή συγγόμφωση) είναι:", 
+                options: ["Τίποτε από τα παραπάνω", "Η πρόσθια δεσμίδα του δίσκου βρίσκεται πάνω από τον κόνδυλο και η οπίσθια δεσμίδα βρίσκεται μεταξύ του κονδύλου και της κλίσης του οπίσθιου αρθρικού φύματος", "Η πρόσθια δεσμίδα του δίσκου βρίσκεται πάνω από τον κόνδυλο και η οπίσθια δεσμίδα βρίσκεται μεταξύ του κονδύλου και της κλίσης του πρόσθιου αρθρικού φύματος", "Η οπίσθια δεσμίδα βρίσκεται πάνω από τον κόνδυλο και η λεπτή ενδιάμεση ζώνη βρίσκεται μεταξύ του κονδύλου και της κλίσης του οπίσθιου αρθρικού φύματος", "Η πρόσθια δεσμίδα του δίσκου βρίσκεται πάνω από τον κόνδυλο και η οπίσθια δεσμίδα βρίσκεται στο πτερυγοειδές βοθρίο"], 
+                correct: [3] 
+            },
+            { 
+                q: "Στη σύγκλειση ομαδικών επαφών (ή ομαδικής συνέργειας) επιβάλλεται:", 
+                options: ["Στην εργαζόμενη πλευρά, πρέπει να καθοδηγήσει η ομάδα των προσθίων δοντιών (κατά προτίμηση ο κυνόδοντας) ενώ στα πίσω δόντια να μην παρατηρείται καμιά επαφή.", "Κατά την πλαγιολίσθηση, στη μη εργαζόμενη πλευρά να υπάρχει συνεχής επαφή μεταξύ των ανταγωνιστικών φυμάτων των οπισθίων δοντιών", "Κατά την πλαγιολίσθηση, στην εργαζόμενη πλευρά να συμμετέχουν οι κυνόδοντες και ομάδα των οπισθίων δοντιών", "Κατά την πλαγιολίσθηση, στην εργαζόμενη πλευρά, πρέπει να συμμετέχουν και να καθοδηγούν την κίνηση, ταυτόχρονα όσο το δυνατόν περισσότερα από την ομάδα των προσθίων αλλά και των οπισθίων δοντιών", "Αμφοτερόπλευρες οδοντικές επαφές μεταξύ προσθίων και οπισθίων δοντιών κατά τις λειτουργικές διαδρομές (προολίσθηση, πλαγιολισθήσεις) της κάτω γνάθου."], 
+                correct: [3] 
+            },
+            { 
+                q: "Η κεντρική σύγκλειση των οδοντικών φραγμών:", 
+                options: ["Πραγματοποιείται στο τόξο της κεντρικής θέσης της κάτω γνάθου", "Πραγματοποιείται στο τέλος του γλιστρήματος στην κεντρική σύγκλειση", "Συμπίπτει με την μέγιστη συναρμογή στην σύγκλειση συνήθειας", "Αποκτάται κατά την σκελετική τροχιά ανάσπασης της κάτω γνάθου", "Συμπίπτει με την πρώτη επαφή στο τόξο της κεντρικής θέσης", "Πραγματοποιείται στο τέλος της προσαρμοζόμενης τροχιάς ανάσπασης της κάτω γνάθου"], 
+                correct: [0, 1, 2, 3] 
+            }
+        ];
 
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedIndices = [];
+        let isAnswered = false;
+
+        const mainCanvas = document.getElementById('main-canvas');
+        const ctx = mainCanvas.getContext('2d');
+        const progressCanvas = document.getElementById('progress-canvas');
+        const pCtx = progressCanvas.getContext('2d');
+
+        function resizeCanvas() {
+            mainCanvas.width = window.innerWidth;
+            mainCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let particles = [];
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y; this.color = color;
+                this.size = Math.random() * 5 + 2;
+                this.speedX = Math.random() * 6 - 3;
+                this.speedY = Math.random() * -10 - 2;
+                this.gravity = 0.2; this.opacity = 1;
+            }
+            update() { this.speedY += this.gravity; this.x += this.speedX; this.y += this.speedY; this.opacity -= 0.01; }
+            draw() { ctx.globalAlpha = this.opacity; ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+        }
+
+        function createConfetti(x, y) {
+            const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+            for (let i = 0; i < 50; i++) particles.push(new Particle(x, y, colors[Math.floor(Math.random() * colors.length)]));
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+            particles = particles.filter(p => p.opacity > 0);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        function drawProgress(percent) {
+            const centerX = progressCanvas.width / 2;
+            const centerY = progressCanvas.height / 2;
+            const radius = 40;
+            pCtx.clearRect(0, 0, progressCanvas.width, progressCanvas.height);
+            pCtx.beginPath(); pCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            pCtx.strokeStyle = '#e2e8f0'; pCtx.lineWidth = 8; pCtx.stroke();
+            const endAngle = (Math.PI * 2 * percent) - Math.PI / 2;
+            pCtx.beginPath(); pCtx.arc(centerX, centerY, radius, -Math.PI / 2, endAngle);
+            pCtx.strokeStyle = '#3b82f6'; pCtx.lineWidth = 8; pCtx.lineCap = 'round'; pCtx.stroke();
+            pCtx.fillStyle = '#1e3a8a'; pCtx.font = 'bold 16px Roboto'; pCtx.textAlign = 'center'; pCtx.textBaseline = 'middle';
+            pCtx.fillText(`${Math.round(percent * 100)}%`, centerX, centerY);
+        }
+        drawProgress(0);
+
+        function startQuiz() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('question-screen').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            isAnswered = false;
+            selectedIndices = [];
+            const q = questions[currentQuestionIndex];
+            document.getElementById('question-number').innerText = `Ερώτηση ${currentQuestionIndex + 1} / ${questions.length}`;
+            document.getElementById('question-text').innerText = q.q;
+            document.getElementById('next-btn').classList.add('hidden');
+            document.getElementById('feedback-msg').innerText = '';
+            
+            const isMulti = q.correct.length > 1;
+            document.getElementById('multi-hint').classList.toggle('hidden', !isMulti);
+            document.getElementById('submit-btn').classList.toggle('hidden', !isMulti);
+
+            const optionsList = document.getElementById('options-list');
+            optionsList.innerHTML = '';
+
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full text-left p-4 rounded-2xl border-2 border-gray-100 bg-white text-gray-700 font-medium focus:outline-none";
+                btn.innerText = opt;
+                btn.onclick = () => handleOptionClick(index, btn, isMulti);
+                optionsList.appendChild(btn);
+            });
+            drawProgress((currentQuestionIndex) / questions.length);
+        }
+
+        function handleOptionClick(index, btn, isMulti) {
+            if (isAnswered) return;
+            
+            if (isMulti) {
+                if (selectedIndices.includes(index)) {
+                    selectedIndices = selectedIndices.filter(i => i !== index);
+                    btn.classList.remove('selected');
+                } else {
+                    selectedIndices.push(index);
+                    btn.classList.add('selected');
+                }
+            } else {
+                checkSingleAnswer(index, btn);
+            }
+        }
+
+        function checkSingleAnswer(index, btn) {
+            isAnswered = true;
+            const q = questions[currentQuestionIndex];
+            const correctIdx = q.correct[0];
+            const buttons = document.querySelectorAll('.option-btn');
+
+            if (index === correctIdx) {
+                score++;
+                btn.classList.add('correct');
+                createConfetti(window.innerWidth / 2, window.innerHeight / 2);
+            } else {
+                btn.classList.add('wrong');
+                buttons[correctIdx].classList.add('correct');
+            }
+            document.getElementById('score-badge').innerText = `Σκορ: ${score}`;
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        function submitMultiAnswer() {
+            isAnswered = true;
+            const q = questions[currentQuestionIndex];
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            const isCorrect = q.correct.length === selectedIndices.length && 
+                              q.correct.every(val => selectedIndices.includes(val));
+
+            buttons.forEach((btn, idx) => {
+                if (q.correct.includes(idx)) {
+                    btn.classList.add('correct');
+                } else if (selectedIndices.includes(idx)) {
+                    btn.classList.add('wrong');
+                }
+                btn.disabled = true;
+            });
+
+            if (isCorrect) {
+                score++;
+                createConfetti(window.innerWidth / 2, window.innerHeight / 2);
+                document.getElementById('feedback-msg').innerText = 'ΣΩΣΤΟ!';
+                document.getElementById('feedback-msg').className = 'text-green-600 font-bold';
+            } else {
+                document.getElementById('feedback-msg').innerText = 'ΛΑΘΟΣ';
+                document.getElementById('feedback-msg').className = 'text-red-600 font-bold';
+            }
+
+            document.getElementById('score-badge').innerText = `Σκορ: ${score}`;
+            document.getElementById('submit-btn').classList.add('hidden');
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('question-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = `${score} / ${questions.length}`;
+            let feedback = score > 20 ? "Εξαιρετικά!" : score > 15 ? "Πολύ καλά!" : "Χρειάζεται επανάληψη.";
+            document.getElementById('feedback-text').innerText = feedback;
+            for(let i=0; i<3; i++) setTimeout(() => createConfetti(Math.random()*window.innerWidth, Math.random()*window.innerHeight), i*400);
+        }
+    </script>
+</body>
+</html>
