@@ -3,134 +3,366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>παλια θεματα ΣΓΣ</title>
+    <title>Παλιά Θέματα ΣΓΣ - Πλήρες Τεστ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            background-color: #f4f4f9;
-            color: #333;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
         }
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            border-bottom: 2px solid #2c3e50;
-            padding-bottom: 10px;
+
+        .answer-box {
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
+            opacity: 0;
         }
-        .section {
-            background: #fff;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+
+        .answer-box.show {
+            max-height: 300px;
+            opacity: 1;
+            margin-top: 1rem;
         }
-        .question {
-            font-weight: bold;
-            margin-top: 15px;
-            color: #2980b9;
+
+        .option-item {
+            @apply p-3 rounded-xl border border-slate-200 bg-slate-50 mb-2 text-sm text-slate-700;
         }
-        .options {
-            list-style-type: none;
-            padding-left: 10px;
+
+        .category-header {
+            @apply text-2xl font-bold text-slate-800 mb-6 mt-12 pb-2 border-b-2 border-slate-300 flex items-center gap-2;
         }
-        .option {
-            margin: 5px 0;
-            padding: 5px;
-            border-radius: 4px;
-        }
-        .correct-answer {
-            display: none;
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #d4edda;
-            color: #155724;
-            border-left: 5px solid #28a745;
-            font-size: 0.9em;
-        }
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8em;
-            margin-top: 5px;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-        .citation {
-            font-size: 0.7em;
-            color: #7f8c8d;
-            font-style: italic;
+
+        .question-card {
+            @apply bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8;
         }
     </style>
 </head>
-<body>
+<body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="mb-10 text-center">
+            <h1 class="text-4xl font-extrabold text-slate-900 mb-2">Παλιά Θέματα ΣΓΣ</h1>
+            <p class="text-slate-600 font-medium">Πλήρες Ψηφιοποιημένο Αρχείο Ερωτήσεων</p>
+        </header>
 
-    <h1>Παλιά Θέματα Στοματογναθικού Συστήματος (ΣΓΣ)</h1>
+        <!-- Filter Navigation -->
+        <div class="sticky top-4 z-20 flex flex-wrap gap-2 mb-8 justify-center bg-white/95 backdrop-blur-md p-3 rounded-2xl shadow-lg border border-slate-200">
+            <button onclick="filterCategory('all')" class="px-4 py-2 rounded-xl bg-slate-800 text-white font-medium hover:bg-slate-700 transition shadow-sm">Όλα</button>
+            <button onclick="filterCategory('neuro')" class="px-4 py-2 rounded-xl bg-blue-100 text-blue-700 font-medium hover:bg-blue-200 transition">Νευρολογία</button>
+            <button onclick="filterCategory('anatomy')" class="px-4 py-2 rounded-xl bg-emerald-100 text-emerald-700 font-medium hover:bg-emerald-200 transition">Ανατομία</button>
+            <button onclick="filterCategory('occlusion')" class="px-4 py-2 rounded-xl bg-purple-100 text-purple-700 font-medium hover:bg-purple-200 transition">Σύγκλειση & Αρθρωτήρες</button>
+        </div>
 
-    <div class="section">
-        <h2>Ενότητα: Νευρολογία & Αισθητικότητα</h2>
-        
-        <div class="question">63. Οι κινητικοί νευρώνες οδηγούν τα ερεθίσματα: <span class="citation"></span></div>
-        <ul class="options">
-            <li>α. από τον εγκέφαλο και τον νωτιαίο μυελό προς την περιφέρεια</li>
-            <li>β. από τον εγκέφαλο προς την περιφέρεια</li>
-            <li>γ. από τον νωτιαίο μυελό προς την περιφέρεια</li>
-        </ul>
-        <button onclick="toggleAnswer('q63')">Εμφάνιση Απάντησης</button>
-        <div id="q63" class="correct-answer">Σωστή απάντηση: <strong>α</strong></div>
+        <div id="quiz-container">
 
-        <div class="question">64. Τα ιδιοδεκτικά όργανα της ΚΦΓΔ εντοπίζονται κυρίως: <span class="citation"></span></div>
-        <button onclick="toggleAnswer('q64')">Εμφάνιση Απάντησης</button>
-        <div id="q64" class="correct-answer">Σωστή απάντηση: <strong>γ</strong> (στον αρθρικό θύλακο, στον έξω πλάγιο σύνδεσμο και στη περιφέρεια του διάρθριου δίσκου)</div>
+            <!-- ΚΑΤΗΓΟΡΙΑ: ΝΕΥΡΟΛΟΓΙΑ -->
+            <section class="category-section" data-category="neuro">
+                <h2 class="category-header"><span class="w-2 h-8 bg-blue-500 rounded-full"></span> Νευρολογία & Αισθητικότητα</h2>
+                
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">63. Οι κινητικοί νευρώνες οδηγούν τα ερεθίσματα:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">α. από τον εγκέφαλο και τον νωτιαίο μυελό προς την περιφέρεια</div>
+                        <div class="option-item">β. από τον εγκέφαλο προς την περιφέρεια</div>
+                        <div class="option-item">γ. από τον νωτιαίο μυελό προς την περιφέρεια</div>
+                        <div class="option-item">δ. από την περιφέρεια προς τον νωτιαίο μυελό</div>
+                        <div class="option-item">ε. από την περιφέρεια προς τον νωτιαίο μυελό και τον εγκέφαλο</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>α</strong></div></div>
+                </div>
 
-        <div class="question">66. Οι εξαιρετικά γρήγορες μεταβολές της μηχανικής κατάστασης των στοιχείων της ΚΦΓΔ ανιχνεύονται από: <span class="citation"></span></div>
-        <button onclick="toggleAnswer('q66')">Εμφάνιση Απάντησης</button>
-        <div id="q66" class="correct-answer">Σωστή απάντηση: <strong>α</strong> (τα σωμάτια των Vater-Pacini)</div>
-    </div>
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">64. Τα ιδιοδεκτικά όργανα της ΚΦΓΔ εντοπίζονται κυρίως:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">α. στον αρθρικό θύλακο, και στον έξω πλάγιο (κροταφογναθικό) σύνδεσμο</div>
+                        <div class="option-item">β. στον αρθρικό θύλακο</div>
+                        <div class="option-item">γ. στον αρθρικό θύλακο, στον έξω πλάγιο σύνδεσμο και στη περιφέρεια του διάρθριου δίσκου</div>
+                        <div class="option-item">δ. στους τένοντες των μυών του στοματογναθικού συστήματος</div>
+                        <div class="option-item">ε. στις αρθρικές επιφάνειες της κροταφογναθικής διάρθρωσης</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>γ</strong></div></div>
+                </div>
 
-    <div class="section">
-        <h2>Ενότητα: Σύγκλειση & Αρθρωτήρες</h2>
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">65. Οι κιναισθητικοί υποδοχείς που παρέχουν στο ΚΝΣ την αίσθηση της κίνησης και θέσης της κάτω γνάθου είναι:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">α. τα σωματια του Vater-Pacini</div>
+                        <div class="option-item">β. τα σωμάτια του Ruffini</div>
+                        <div class="option-item">γ. τα σωματια του Vater-Pacini, τα σωμάτια του Ruffini και οι ελεύθερες νευρικές απολήξεις</div>
+                        <div class="option-item">δ. τα όργανα του Golgi, οι νευρομυϊκές άτρακτοι και τα σωμάτια του Ruffini</div>
+                        <div class="option-item">ε. οι νευρομυϊκές άτρακτοι και τα σωμάτια του Vater-Pacini</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>γ</strong></div></div>
+                </div>
 
-        <div class="question">1. Λειτουργικά φύματα ονομάζονται: <span class="citation"></span></div>
-        <button onclick="toggleAnswer('q1')">Εμφάνιση Απάντησης</button>
-        <div id="q1" class="correct-answer">Σωστή απάντηση: <strong>Α</strong> (Τα υπερώια άνω και τα παρειακά κάτω)</div>
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">66. Οι εξαιρετικά γρήγορες μεταβολές της μηχανικής κατάστασης των στοιχείων της ΚΦΓΔ ανιχνεύονται από:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">α. τα σωματια των Vater-Pacini</div>
+                        <div class="option-item">β. τα σωμάτια των Ruffini</div>
+                        <div class="option-item">γ. τα όργανα του Golgi</div>
+                        <div class="option-item">δ. τα σωματια των Vater-Pacini και τα σωμάτια του Ruffini</div>
+                        <div class="option-item">ε. τα όργανα του Golgi, τα σωματια των Vater-Pacini και τα σωμάτια του Ruffini</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>α</strong></div></div>
+                </div>
 
-        <div class="question">2. Arcon ονομάζονται οι αρθρωτήρες: <span class="citation"></span></div>
-        <button onclick="toggleAnswer('q2')">Εμφάνιση Απάντησης</button>
-        <div id="q2" class="correct-answer">Σωστή απάντηση: <strong>Γ</strong> (Όπου τα κονδυλικά στοιχεία βρίσκονται στο κάτω μέρος του αρθρωτήρα)</div>
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">67. Εξωδεκτικοί υποδοχείς ή εξωδεκτικά όργανα είναι όργανα που δέχονται ερεθίσματα όπως:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">α. της αφής</div>
+                        <div class="option-item">β. της θερμοκρασίας</div>
+                        <div class="option-item">γ. της όρασης και της ακοής</div>
+                        <div class="option-item">δ. της αφής, της θερμοκρασίας, της όρασης και της ακοής</div>
+                        <div class="option-item">ε. της αφής, της θερμοκρασίας, της όρασης, της ακοής, της πείνας και της δίψας</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>δ</strong></div></div>
+                </div>
 
-        <div class="question">93. Η γωνία Bennett κυρίως καθορίζει: <span class="citation"></span></div>
-        <button onclick="toggleAnswer('q93')">Εμφάνιση Απάντησης</button>
-        <div id="q93" class="correct-answer">Σωστή απάντηση: <strong>Β</strong> (το ύψος των φυμάτων στις μασητικές επιφάνειες των οπισθίων δοντιών)</div>
-    </div>
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">68. Οι ιδιοδεκτικοί υποδοχείς ή ιδιοδεκτικά όργανα είναι όργανα τα οποία δέχονται ερεθίσματα που αφορούν:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">α. την πίεση, την θέση και την κίνηση</div>
+                        <div class="option-item">β. την αφή, τη θέση, και την κίνηση</div>
+                        <div class="option-item">γ. την αφή, τη κίνηση, και τον σπλαχνικό πόνο</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>α</strong></div></div>
+                </div>
+            </section>
 
-    <div class="section">
-        <h2>Ενότητα: Ανατομία Μυών & Συνδέσμων</h2>
+            <!-- ΚΑΤΗΓΟΡΙΑ: ΑΝΑΤΟΜΙΑ -->
+            <section class="category-section" data-category="anatomy">
+                <h2 class="category-header"><span class="w-2 h-8 bg-emerald-500 rounded-full"></span> Ανατομία Μυών & Συνδέσμων</h2>
 
-        <div class="question">43. Οι μασητήριοι μύες είναι: <span class="citation"></span></div>
-        <button onclick="toggleAnswer('q43')">Εμφάνιση Απάντησης</button>
-        <div id="q43" class="correct-answer">Σωστή απάντηση: <strong>β</strong> (ο μασητήρας, ο κροταφίτης, ο έσω πτερυγοειδής και ο έξω πτερυγοειδής)</div>
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">40. Οι ανεξάρτητοι σύνδεσμοι της κροταφογναθικής διάρθρωσης είναι:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">α. Ο έξω πλάγιος και ο έσω πλάγιος</div>
+                        <div class="option-item">β. Ο σφηνογναθικός και ο βελονογναθικός</div>
+                        <div class="option-item">γ. Ο σφηνογναθικός και αγκιστρογναθικός</div>
+                        <div class="option-item">δ. Ο σφηνογναθικός, ο βελονογναθικός και ο αγκιστρογναθικός</div>
+                        <div class="option-item">ε. Ο έξω πλάγιος, ο έσω πλάγιος και ο αγκιστρογναθικός</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>δ</strong></div></div>
+                </div>
 
-        <div class="question">55. Ο έσω πτερυγοειδής μυς καταφύεται: <span class="citation"></span></div>
-        <button onclick="toggleAnswer('q55')">Εμφάνιση Απάντησης</button>
-        <div id="q55" class="correct-answer">Σωστή απάντηση: <strong>γ</strong> (στην εσωτερική επιφάνεια της γωνίας της κάτω γνάθου)</div>
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">41. Οι κύριοι μύες που συμμετέχουν στη λειτουργία του στοματογναθικού συστήματος είναι:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">α. οι μασητήριοι, οι επάνω από το υοειδές οστούν και οι κάτω από το υοειδές οστούν</div>
+                        <div class="option-item">β. οι μασητήριοι</div>
+                        <div class="option-item">γ. οι μασητήριοι και οι επάνω από το υοειδές οστούν</div>
+                        <div class="option-item">δ. οι μασητήριοι και οι κάτω από το υοειδές οστούν</div>
+                        <div class="option-item">ε. οι επάνω από το υοειδές οστούν και οι κάτω από το υοειδές οστούν</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>α</strong></div></div>
+                </div>
+
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">43. Οι μασητήριοι μύες είναι:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">α. ο μασητήρας, ο κροταφίτης και ο έξω πτερυγοειδής</div>
+                        <div class="option-item">β. ο μασητήρας, ο κροταφίτης, ο έσω πτερυγοειδής και ο έξω πτερυγοειδής</div>
+                        <div class="option-item">γ. ο μασητήρας, ο κροταφίτης και ο έσω πτερυγοειδής</div>
+                        <div class="option-item">δ. ο μασητήρας και ο κροταφίτης</div>
+                        <div class="option-item">ε. ο μασητήρας, ο έσω πτερυγοειδής και ο έξω πτερυγοειδής</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>β</strong></div></div>
+                </div>
+
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">44. Όταν συσπώνται και οι δύο μασητήρες προκαλούν:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">α. κλείσιμο της κάτω γνάθου και ισχυρό σφίξιμο των δοντιών</div>
+                        <div class="option-item">β. κλείσιμο της κάτω γνάθου, μέχρι μπροστά από την κορωνοειδή απόφυση</div>
+                        <div class="option-item">γ. κλείσιμο της κάτω γνάθου και επίσης την κινούν προς τα μπροστά</div>
+                        <div class="option-item">δ. κινούν την κάτω γνάθο προς τα μπροστά</div>
+                        <div class="option-item">ε. κινούν την κάτω γνάθο προς τα πίσω</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>α</strong></div></div>
+                </div>
+
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">52. Ο έξω πτερυγοειδής εμφανίζει μια άνω και μία κάτω μοίρα. Η άνω μοίρα καταφύεται:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">α. στον διάρθριο δίσκο της κροταφογναθικής διάρθρωσης</div>
+                        <div class="option-item">β. στο πτερυγοειδές βοθρίο του κονδύλου</div>
+                        <div class="option-item">γ. στην πυραμοειδή απόφυση του υπερωίου οστού</div>
+                        <div class="option-item">δ. στον διάρθριο δίσκο και τον αρθρικό θύλακο της κροταφογναθικής διάρθρωσης</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>δ</strong></div></div>
+                </div>
+
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">55. Ο έσω πτερυγοειδής μυς καταφύεται:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">α. στο πτερυγοειδές βοθρίο του κονδύλου</div>
+                        <div class="option-item">β. στο πτερυγοειδές βοθρίο του κονδύλου και στην πυραμοειδή απόφυση του υπερωίου οστού</div>
+                        <div class="option-item">γ. στην εσωτερική επιφάνεια της γωνίας της κάτω γνάθου</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>γ</strong></div></div>
+                </div>
+
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">56. Όταν συσπώνται οι δύο έσω πτερυγοειδείς προκαλούν:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">α. κλείσιμο της κάτω γνάθου και ισχυρό σφίξιμο των δοντιών</div>
+                        <div class="option-item">β. κλείσιμο της κάτω γνάθου και κίνηση της προς τα μπροστά</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>α</strong></div></div>
+                </div>
+            </section>
+
+            <!-- ΚΑΤΗΓΟΡΙΑ: ΣΥΓΚΛΕΙΣΗ -->
+            <section class="category-section" data-category="occlusion">
+                <h2 class="category-header"><span class="w-2 h-8 bg-purple-500 rounded-full"></span> Σύγκλειση & Αρθρωτήρες</h2>
+
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">1. Λειτουργικά φύματα ονομάζονται:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">Α. Τα υπερώια άνω και τα παρειακά κάτω</div>
+                        <div class="option-item">Β. Τα υπερώια άνω και τα γλωσσικά κάτω</div>
+                        <div class="option-item">Γ. Τα Παρειακά άνω και τα παρειακά κάτω</div>
+                        <div class="option-item">Δ. Τα παρειακά άνω και τα γλωσσικά κάτω</div>
+                        <div class="option-item">Ε. Κανένα από τα παραπάνω</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>Α</strong></div></div>
+                </div>
+
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">2. Arcon ονομάζονται οι αρθρωτήρες:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">Α. Σταθερών αποκλίσεων</div>
+                        <div class="option-item">Β. Ημιπροσαρμοζόμενοι</div>
+                        <div class="option-item">Γ. Όπου τα κονδυλικά στοιχεία βρίσκονται στο κάτω μέρος του αρθρωτήρα</div>
+                        <div class="option-item">Δ. Όπου τα κονδυλικά στοιχεία βρίσκονται στο άνω σκέλος τους</div>
+                        <div class="option-item">Ε. Με τομική βελόνα</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>Γ</strong> (επιστημονικά) / <strong>Β</strong> (σημειωμένο στην εικόνα)</div></div>
+                </div>
+
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">3. Με το προσωπικό τόξο επιτυγχάνεται:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">Α. Ανάρτηση στον αρθρωτήρα του εκμαγείου της κάτω γνάθου σε μέγιστη συγγόμφωση</div>
+                        <div class="option-item">Β. Ανάρτηση στον αρθρωτήρα του εκμαγείου της κάτω γνάθου σε κεντρική σχέση</div>
+                        <div class="option-item">Γ. Μεταφορά της θέσης της άνω γνάθου σε σχέση με το οριζόντιο επίπεδο αναφοράς</div>
+                        <div class="option-item">Δ. Μεταφορά στον αρθρωτήρα του τομικού οδηγού</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>Γ</strong></div></div>
+                </div>
+
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">5. Η Κεντρική Σχέση σαν θέση θεραπείας χρησιμοποιείται όταν:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">Α. Υπάρχουν επαφές στα πρόσθια δόντια</div>
+                        <div class="option-item">Β. Υπάρχει υπερβολικά βραχύ οδοντικό τόξο</div>
+                        <div class="option-item">Ε. Δεν υπάρχει σταθερή Μέγιστη Συγγόμφωση</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>Ε</strong></div></div>
+                </div>
+
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">92. Οι πλάγιοι τομείς της άνω γνάθου δεν έρχονται σε επαφή με το μασητικό επίπεδο επειδή:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">Α. το επιβάλλουν οι κανόνες της αισθητικής</div>
+                        <div class="option-item">Β. βοηθούν την προοδευτική αποσυναρμογή των οπισθίων δοντιών στην προολίσθηση</div>
+                        <div class="option-item">Γ. διέρχονται οι κυνόδοντες της κάτω γνάθου στην προολίσθηση</div>
+                        <div class="option-item">Δ. όλα τα παραπάνω</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>Β</strong></div></div>
+                </div>
+
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">93. Η γωνία Bennett κυρίως καθορίζει:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">Α. την θέση των φυμάτων στις μασητικές επιφάνειες</div>
+                        <div class="option-item">Β. το ύψος των φυμάτων στις μασητικές επιφάνειες των οπισθίων δοντιών</div>
+                        <div class="option-item">Γ. τις κοπτικές επιφάνειες των προσθίων δοντιών</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>Β</strong></div></div>
+                </div>
+
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">97. Όταν τα εκμαγεία τοποθετηθούν με ακρίβεια στον αρθρωτήρα, το εκμαγείο της άνω γνάθου είναι πάντοτε παράλληλο προς το:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">Α. αξονοκογχικό επίπεδο</div>
+                        <div class="option-item">Β. οριζόντιο επίπεδο αναφοράς</div>
+                        <div class="option-item">Γ. έδαφος</div>
+                        <div class="option-item">Δ. οριζόντιο επίπεδο Φρανκφούρτης</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>Δ</strong></div></div>
+                </div>
+
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">98. Όσο μεγαλύτερη είναι η καμπύλη του Spee τόσο πιο:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">Α. εύκολη είναι η αποσυναρμογή των οπισθίων δοντιών</div>
+                        <div class="option-item">Β. δύσκολη είναι η αποσυναρμογή των οπισθίων δοντιών</div>
+                        <div class="option-item">Γ. υψηλό θα είναι το ύψος των φυμάτων των οπισθίων δοντιών</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>Γ</strong></div></div>
+                </div>
+
+                <div class="question-card">
+                    <p class="font-bold text-slate-800 mb-4">100. Η σύγκλειση που η αποσυναρμογή των οπισθίων δοντιών στις πλάγιες κινήσεις γίνονται από τον κυνόδοντα και τον πρώτο προγόμφιο ονομάζονται:</p>
+                    <div class="flex flex-col">
+                        <div class="option-item">Α. κυνοδοντική προστασία</div>
+                        <div class="option-item">Β. ομαδική συνέργεια</div>
+                        <div class="option-item">Γ. μερική συνέργεια</div>
+                        <div class="option-item">Δ. ατελής συνέργεια</div>
+                        <div class="option-item">Ε. αμφίπλευρη συνέργεια</div>
+                    </div>
+                    <button onclick="toggleAnswer(this)" class="mt-2 text-blue-600 text-xs font-bold uppercase tracking-wider hover:underline">Έλεγχος Απάντησης</button>
+                    <div class="answer-box"><div class="bg-green-50 text-green-800 p-4 rounded-xl border-l-4 border-green-500 text-sm">Σωστή απάντηση: <strong>Β</strong></div></div>
+                </div>
+            </section>
+        </div>
+
+        <footer class="mt-16 py-8 border-t border-slate-200 text-center text-slate-400 text-xs">
+            <p>© Πλήρες Τεστ ΣΓΣ - Συμπεριλαμβάνονται όλες οι ερωτήσεις από τις εικόνες.</p>
+        </footer>
     </div>
 
     <script>
-        function toggleAnswer(id) {
-            var x = document.getElementById(id);
-            if (x.style.display === "none" || x.style.display === "") {
-                x.style.display = "block";
-            } else {
-                x.style.display = "none";
-            }
+        function toggleAnswer(btn) {
+            const box = btn.nextElementSibling;
+            box.classList.toggle('show');
+            btn.textContent = box.classList.contains('show') ? 'Αποκρυψη Απαντησης' : 'Ελεγχος Απαντησης';
+        }
+
+        function filterCategory(cat) {
+            const sections = document.querySelectorAll('.category-section');
+            sections.forEach(s => {
+                if (cat === 'all' || s.getAttribute('data-category') === cat) {
+                    s.style.display = 'block';
+                } else {
+                    s.style.display = 'none';
+                }
+            });
         }
     </script>
 </body>
