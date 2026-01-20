@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Κλινικό Quiz: Διαγνωστική Μασητήρων</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .quiz-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .option-btn { transition: all 0.2s ease; border: 2px solid #e2e8f0; }
+        .option-btn:hover:not(:disabled) { border-color: #3b82f6; background-color: #eff6ff; transform: translateX(4px); }
+        .option-btn.correct { border-color: #22c55e; background-color: #f0fdf4; color: #166534; }
+        .option-btn.wrong { border-color: #ef4444; background-color: #fef2f2; color: #991b1b; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade { animation: fadeIn 0.4s ease-out forwards; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navigation / Header -->
+    <nav class="bg-white border-b border-slate-200 py-4 px-6 sticky top-0 z-10 shadow-sm">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="font-extrabold text-slate-800 text-lg sm:text-xl">Κλινική Διαγνωστική Μασητήρων</h1>
+            <div id="stats" class="flex gap-4 text-sm font-bold">
+                <span class="text-blue-600">Σωστά: <span id="correct-count">0</span></span>
+                <span class="text-slate-400">Ερώτηση: <span id="current-num">1</span>/25</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex items-center justify-center p-4">
+        <!-- Start Screen -->
+        <div id="start-screen" class="max-w-lg w-full bg-white rounded-3xl shadow-2xl p-8 text-center animate-fade">
+            <div class="mb-6 inline-block p-4 bg-blue-50 rounded-full text-blue-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">Τελική Αξιολόγηση</h2>
+            <p class="text-slate-500 mb-8">25 Ερωτήσεις με έμφαση στα κλινικά χαρακτηριστικά και τη διαφορική διάγνωση του μυϊκού πόνου.</p>
+            <button id="start-btn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
+                Έναρξη Εξέτασης
+            </button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden max-w-2xl w-full">
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden animate-fade">
+                <!-- Progress Bar -->
+                <div class="h-1.5 bg-slate-100 w-full">
+                    <div id="progress-bar" class="h-full bg-blue-600 transition-all duration-500" style="width: 4%"></div>
+                </div>
+
+                <div class="p-8">
+                    <h3 id="question-text" class="text-xl font-bold text-slate-800 mb-8 leading-snug"></h3>
+                    
+                    <div id="options-container" class="space-y-3">
+                        <!-- Options injected here -->
+                    </div>
+
+                    <!-- Feedback -->
+                    <div id="feedback-panel" class="mt-8 p-5 rounded-2xl hidden">
+                        <div class="flex items-start gap-3">
+                            <div id="feedback-icon" class="mt-1"></div>
+                            <div>
+                                <p id="feedback-title" class="font-bold mb-1"></p>
+                                <p id="feedback-desc" class="text-sm opacity-90"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="next-btn" class="mt-8 w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hidden hover:bg-slate-800 transition-all">
+                        Επόμενη Ερώτηση
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden max-w-md w-full bg-white rounded-3xl shadow-2xl p-10 text-center animate-fade">
+            <h2 class="text-3xl font-extrabold text-slate-800 mb-2">Αποτέλεσμα</h2>
+            <div class="text-6xl font-black text-blue-600 my-8" id="final-score">0/25</div>
+            <p id="result-text" class="text-slate-500 mb-8 font-medium"></p>
+            <button onclick="location.reload()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all">
+                Επανάληψη Τεστ
+            </button>
+        </div>
+    </main>
+
+    <script>
+        const questions = [
+            {
+                q: "Ποια είναι η ενδεδειγμένη πίεση και διάρκεια για την ψηλάφηση του μασητήρα και του κροταφίτη κατά τα DC/TMD;",
+                options: ["2 kg για 5 δευτερόλεπτα", "1 kg για 2 δευτερόλεπτα", "0,5 kg για 10 δευτερόλεπτα", "5 kg για 1 δευτερόλεπτο"],
+                correct: 1,
+                fact: "Η σταθερή πίεση 1kg για 2'' είναι η διεθνώς αποδεκτή μέθοδος για την αξιολόγηση του μυϊκού πόνου."
+            },
+            {
+                q: "Πώς ορίζεται η 'Τοπική Μυαλγία' (Local Myalgia);",
+                options: ["Πόνος που εξαπλώνεται σε όλο το σώμα του μυός", "Πόνος που περιορίζεται αυστηρά στο σημείο της πίεσης", "Πόνος που αντανακλά στα δόντια", "Πόνος που συνοδεύεται από οίδημα"],
+                correct: 1,
+                fact: "Στην τοπική μυαλγία, ο πόνος δεν επεκτείνεται πέρα από το σημείο όπου ασκείται η πίεση."
+            },
+            {
+                q: "Ποιο είναι το χαρακτηριστικό του 'Μυοπεριτοναϊκού Πόνου με Αντανάκλαση' (Referral);",
+                options: ["Ο πόνος παραμένει εντός των ορίων του μυός", "Ο πόνος προβάλλεται σε περιοχές εκτός των ανατομικών ορίων του μυού (π.χ. δόντια, αυτί)", "Ο πόνος είναι ανώδυνος σε ηρεμία", "Ο πόνος οφείλεται αποκλειστικά σε ίνωση"],
+                correct: 1,
+                fact: "Η αντανάκλαση (referral) αφορά πόνο που 'ταξιδεύει' σε απομακρυσμένες δομές."
+            },
+            {
+                q: "Ποια κλινικά σημεία διαφοροποιούν τη Μυοσίτιδα από την απλή Μυαλγία;",
+                options: ["Μόνο ο έντονος πόνος", "Η παρουσία οιδήματος, ερυθρότητας ή τοπικής αύξησης της θερμοκρασίας", "Η πρωινή δυσκαμψία", "Η ηλικία του ασθενούς"],
+                correct: 1,
+                fact: "Η μυοσίτιδα είναι φλεγμονώδης κατάσταση και εμφανίζει τα κλασικά κλινικά σημεία της φλεγμονής."
+            },
+            {
+                q: "Τι χαρακτηρίζει τον Μυϊκό Σπασμό (Spasm) σε αντίθεση με τη Μυϊκή Συστολή;",
+                options: ["Υψηλή EMG (ηλεκτρομυογραφική) δραστηριότητα και αιφνίδια έναρξη", "Μόνιμη δομική βράχυνση του μυού", "Απουσία πόνου", "Ατροφία του μυός"],
+                correct: 0,
+                fact: "Ο σπασμός είναι μια ενεργή, ακούσια σύσπαση με έντονη ηλεκτρική δραστηριότητα."
+            },
+            {
+                q: "Τι είναι η 'Μυϊκή Συστολή' (Contracture);",
+                options: ["Οξεία φλεγμονή", "Χρόνια βράχυνση του μυού λόγω ίνωσης, συνήθως ανώδυνη σε ηρεμία", "Υπερτροφία του μασητήρα", "Προσωρινή κόπωση"],
+                correct: 1,
+                fact: "Η συστολή (contracture) αφορά δομική αλλαγή (ίνωση) που περιορίζει την κίνηση."
+            },
+            {
+                q: "Πού εντοπίζεται η ευαισθησία στην περίπτωση Τενοντίτιδας του κροταφίτη;",
+                options: ["Στη γωνία της κάτω γνάθου", "Στην κορωνοειδή απόφυση", "Στον κόνδυλο", "Στο κέντρο του μάγουλου"],
+                correct: 1,
+                fact: "Η κορωνοειδής απόφυση είναι το κύριο σημείο πρόσφυσης του τένοντα του κροταφίτη."
+            },
+            {
+                q: "Πώς αναπαράγεται κλινικά η Κεφαλαλγία που αποδίδεται σε ΚΓΔ;",
+                options: ["Με κλείσιμο των ματιών", "Με την ψηλάφηση του κροταφίτη μυός ή τις κινήσεις της γνάθου", "Με την κατάποση", "Με την ψηλάφηση του αυχένα μόνο"],
+                correct: 1,
+                fact: "Αν ο πόνος στον κρόταφο προκαλείται από τη λειτουργία της γνάθου, αποδίδεται σε ΚΓΔ."
+            },
+            {
+                q: "Η 'Αλλοδυνία' (πόνος από μη επώδυνο ερέθισμα) είναι ένδειξη:",
+                options: ["Περιφερικής ευαισθητοποίησης", "Κεντρικής ευαισθητοποίησης", "Υπερτροφίας", "Απλού τραυματισμού"],
+                correct: 1,
+                fact: "Η αλλοδυνία και η δευτερογενής υπεραλγησία είναι κλασικά σημάδια κεντρικής ευαισθητοποίησης."
+            },
+            {
+                q: "Ποια ουσία συνδέεται με την Περιφερική Ευαισθητοποίηση στο κείμενο;",
+                options: ["Ινσουλίνη", "Ουσία P (Substance P)", "Αδρεναλίνη", "Κορτιζόνη"],
+                correct: 1,
+                fact: "Η ουσία P, το γλουταμινικό και η σεροτονίνη διεγείρουν τους αλγοϋποδοχείς στην περιφέρεια."
+            },
+            {
+                q: "Ποιος είναι ο κύριος ρόλος του Κροταφίτη μυού όσον αφορά τη βαρύτητα;",
+                options: ["Προκαλεί μόνο πλάγιες κινήσεις", "Αντισταθμίζει την επίδραση της βαρύτητας για τη διατήρηση της θέσης της γνάθου", "Ανοίγει το στόμα", "Δεν επηρεάζεται από τη βαρύτητα"],
+                correct: 1,
+                fact: "Ο κροταφίτης είναι κρίσιμος για τη σταθερή θέση της κάτω γνάθου σε ηρεμία."
+            },
+            {
+                q: "Ποιος τύπος μυϊκών ινών κυριαρχεί στους μασητήρες και είναι ανθεκτικός στην κόπωση;",
+                options: ["Τύπος Ι (βραδείας συστολής)", "Τύπος ΙΙ (ταχείας συστολής)", "Τύπος ΙΙα", "Ενδιάμεσες ίνες"],
+                correct: 0,
+                fact: "Οι ίνες Τύπου Ι είναι αερόβιες και επιτρέπουν παρατεταμένη λειτουργία χωρίς κόπωση."
+            },
+            {
+                q: "Ποιοι υποδοχείς αναπληρώνουν τα ελλείποντα τενόντια όργανα Golgi στους μασητήρες;",
+                options: ["Οι υποδοχείς του δέρματος", "Οι υποδοχείς του περιοδοντικού συνδέσμου", "Οι γευστικοί κάλυκες", "Οι ακουστικοί υποδοχείς"],
+                correct: 1,
+                fact: "Οι περιοδοντικοί υποδοχείς ενημερώνουν το ΚΝΣ για τις δυνάμεις που ασκούνται στα δόντια."
+            },
+            {
+                q: "Ποια είναι η επιδημιολογική αναλογία εμφάνισης διαταραχών μεταξύ γυναικών και ανδρών;",
+                options: ["1:1", "2:1 υπέρ των γυναικών", "3:1 υπέρ των ανδρών", "10:1 υπέρ των γυναικών"],
+                correct: 1,
+                fact: "Οι γυναίκες εμφανίζουν διπλάσια συχνότητα μυϊκών διαταραχών σε σχέση με τους άνδρες."
+            },
+            {
+                q: "Ποιος ψυχολογικός παράγοντας αναφέρεται ότι αυξάνει τον κίνδυνο επίμονων μυαλγιών;",
+                options: ["Η χαρά", "Η κατάθλιψη", "Η έλλειψη φαντασίας", "Η εξωστρέφεια"],
+                correct: 1,
+                fact: "Η κατάθλιψη συνδέεται άμεσα με την ανάπτυξη χρόνιων επώδυνων συνδρόμων."
+            },
+            {
+                q: "Ποιος συγκλεισιακός παράγοντας αποτελεί υψηλό κίνδυνο για μυαλγία;",
+                options: ["Η ύπαρξη όλων των δοντιών", "Η απώλεια οπίσθιων δοντιών στήριξης", "Η λεύκανση δοντιών", "Οι ορθοδοντικές μετακινήσεις"],
+                correct: 1,
+                fact: "Η απώλεια οπίσθιας στήριξης επιβαρύνει τη νευρομυϊκή ισορροπία."
+            },
+            {
+                q: "Ποια μορφολογία προσώπου συνδέεται με μεγαλύτερη δύναμη δήξης;",
+                options: ["Μακρύ πρόσωπο", "Τετράγωνο / Κοντό πρόσωπο", "Λεπτό πρόσωπο", "Οβάλ πρόσωπο"],
+                correct: 1,
+                fact: "Το τετράγωνο πρόσωπο υποδηλώνει ισχυρούς ανασπώντες μύες και ευνοϊκή ανατομία."
+            },
+            {
+                q: "Τι είναι η Υπερτροφία του μασητήρα;",
+                options: ["Φλεγμονή του μυός", "Ανώδυνη αύξηση του όγκου λόγω χρόνιας υπερλειτουργίας (π.χ. βρυγμός)", "Μείωση του μεγέθους του μυός", "Όγκος που απαιτεί χειρουργείο"],
+                correct: 1,
+                fact: "Η υπερτροφία είναι προσαρμογή του μυός στην έντονη παραλειτουργική δραστηριότητα."
+            },
+            {
+                q: "Ποια είναι η πρώτη γραμμή θεραπείας για τις μυϊκές διαταραχές;",
+                options: ["Χειρουργική επέμβαση", "Συντηρητική (συμβουλευτική, φυσικοθεραπεία, νάρθηκες)", "Εξαγωγή δοντιών", "Μόνιμη ακινητοποίηση της γνάθου"],
+                correct: 1,
+                fact: "Η συντηρητική και μη παρεμβατική αγωγή είναι η ενδεδειγμένη αρχική προσέγγιση."
+            },
+            {
+                q: "Πόσο χρόνο πρέπει να διατηρείται η πίεση κατά την ψηλάφηση σύμφωνα με το κείμενο;",
+                options: ["10 δευτερόλεπτα", "2 δευτερόλεπτα", "30 δευτερόλεπτα", "1 λεπτό"],
+                correct: 1,
+                fact: "Η σταθερή πίεση για 2'' αρκεί για να διαπιστωθεί η ύπαρξη πόνου."
+            },
+            {
+                q: "Σε τι χρησιμεύει ο 'Σταθεροποιητικός Νάρθηκας' (Splint);",
+                options: ["Στην ευθυγράμμιση των δοντιών", "Στη μείωση της μυϊκής δραστηριότητας και προστασία από τον βρυγμό", "Στη θεραπεία της τερηδόνας", "Στην αύξηση της δύναμης δήξης"],
+                correct: 1,
+                fact: "Ο νάρθηκας αποφορτίζει το σύστημα και προστατεύει τις οδοντικές επιφάνειες."
+            },
+            {
+                q: "Τι ορίζεται ως 'Διαταραχές Κινητικότητας' (Movement Disorders) στο κείμενο;",
+                options: ["Η δυσκολία στο περπάτημα", "Η δυστονία ή η δυσκινησία της στοματογναθικής περιοχής", "Ο περιορισμός λόγω ίνωσης", "Η τενοντίτιδα"],
+                correct: 1,
+                fact: "Περιλαμβάνουν ακούσιες κινήσεις ή σπασμούς κεντρικής αιτιολογίας."
+            },
+            {
+                q: "Πώς ορίζεται ο Μυοπεριτοναϊκός Πόνος χωρίς αντανάκλαση;",
+                options: ["Πόνος μόνο στο σημείο πίεσης", "Πόνος που εξαπλώνεται πέρα από το σημείο πίεσης αλλά εντός των ορίων του μυός", "Πόνος στα δόντια", "Πόνος στην άρθρωση"],
+                correct: 1,
+                fact: "Είναι ο διάχυτος μυϊκός πόνος που παραμένει όμως στην ανατομική περιοχή του μυός."
+            },
+            {
+                q: "Τι προκαλεί η 'Πτεροειδής Διάταξη' των ινών στον μασητήρα;",
+                options: ["Ταχύτερη κόπωση", "Μεγαλύτερη δύναμη δήξης και επιλεκτική ενεργοποίηση μερών του μυός", "Λιγότερη δύναμη", "Μείωση της ιδιοδεκτικότητας"],
+                correct: 1,
+                fact: "Η αρχιτεκτονική αυτή επιτρέπει την άσκηση μεγάλων δυνάμεων σε μικρή απόσταση."
+            },
+            {
+                q: "Ο 'Πόνος μασητήρων από συστηματικές διαταραχές' συνδέεται συχνά με:",
+                options: ["Τερηδόνα", "Ινομυαλγία ή γενικευμένα σύνδρομα πόνου", "Κακή στοματική υγιεινή", "Λανθασμένα σφραγίσματα"],
+                correct: 1,
+                fact: "Συχνά ο μυϊκός πόνος στη γνάθο είναι μέρος μιας ευρύτερης κεντρικής διαταραχής πόνου."
+            }
+        ];
+
+        let currentIdx = 0;
+        let score = 0;
+        let isAnswered = false;
+
+        const dom = {
+            startScreen: document.getElementById('start-screen'),
+            quizScreen: document.getElementById('quiz-screen'),
+            resultScreen: document.getElementById('result-screen'),
+            questionText: document.getElementById('question-text'),
+            optionsContainer: document.getElementById('options-container'),
+            nextBtn: document.getElementById('next-btn'),
+            feedbackPanel: document.getElementById('feedback-panel'),
+            feedbackTitle: document.getElementById('feedback-title'),
+            feedbackDesc: document.getElementById('feedback-desc'),
+            feedbackIcon: document.getElementById('feedback-icon'),
+            correctCount: document.getElementById('correct-count'),
+            currentNum: document.getElementById('current-num'),
+            progressBar: document.getElementById('progress-bar'),
+            finalScore: document.getElementById('final-score'),
+            resultText: document.getElementById('result-text')
+        };
+
+        document.getElementById('start-btn').onclick = () => {
+            dom.startScreen.classList.add('hidden');
+            dom.quizScreen.classList.remove('hidden');
+            loadQuestion();
+        };
+
+        function loadQuestion() {
+            isAnswered = false;
+            const q = questions[currentIdx];
+            dom.currentNum.innerText = currentIdx + 1;
+            dom.questionText.innerText = q.q;
+            dom.progressBar.style.width = `${((currentIdx + 1) / questions.length) * 100}%`;
+            
+            dom.optionsContainer.innerHTML = '';
+            dom.feedbackPanel.classList.add('hidden');
+            dom.nextBtn.classList.add('hidden');
+
+            q.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full text-left p-4 rounded-xl font-medium text-slate-700 bg-white";
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(i, btn);
+                dom.optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(idx, btn) {
+            if (isAnswered) return;
+            isAnswered = true;
+            const q = questions[currentIdx];
+            const allBtns = dom.optionsContainer.querySelectorAll('button');
+
+            if (idx === q.correct) {
+                score++;
+                dom.correctCount.innerText = score;
+                btn.classList.add('correct');
+                showFeedback(true, q.fact);
+            } else {
+                btn.classList.add('wrong');
+                allBtns[q.correct].classList.add('correct');
+                showFeedback(false, q.fact);
+            }
+
+            allBtns.forEach(b => b.disabled = true);
+            dom.nextBtn.classList.remove('hidden');
+        }
+
+        function showFeedback(isCorrect, fact) {
+            dom.feedbackPanel.classList.remove('hidden');
+            dom.feedbackTitle.innerText = isCorrect ? "Σωστά!" : "Λάθος απάντηση";
+            dom.feedbackDesc.innerText = fact;
+            dom.feedbackPanel.className = `mt-8 p-5 rounded-2xl ${isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`;
+            dom.feedbackIcon.innerHTML = isCorrect 
+                ? `<svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>`
+                : `<svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>`;
+        }
+
+        dom.nextBtn.onclick = () => {
+            currentIdx++;
+            if (currentIdx < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        };
+
+        function showResults() {
+            dom.quizScreen.classList.add('hidden');
+            dom.resultScreen.classList.remove('hidden');
+            dom.finalScore.innerText = `${score}/${questions.length}`;
+            
+            const perc = (score / questions.length) * 100;
+            if (perc >= 90) dom.resultText.innerText = "Εξαιρετική γνώση! Είσαι έτοιμος για την κλινική εξέταση.";
+            else if (perc >= 70) dom.resultText.innerText = "Πολύ καλή προσπάθεια. Μερικές λεπτομέρειες στη διαφορική διάγνωση χρειάζονται προσοχή.";
+            else dom.resultText.innerText = "Χρειάζεται επανάληψη στις σημειώσεις για τη διάκριση των τύπων πόνου.";
+        }
+    </script>
+</body>
+</html>
