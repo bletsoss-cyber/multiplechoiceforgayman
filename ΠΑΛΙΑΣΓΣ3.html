@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Διαδραστικό Quiz Στοματογναθικού Συστήματος</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .option-btn:hover { transform: translateY(-2px); transition: all 0.2s; }
+        .correct { background-color: #10b981 !important; color: white !important; border-color: #059669 !important; }
+        .wrong { background-color: #ef4444 !important; color: white !important; border-color: #dc2626 !important; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+
+    <div id="quiz-container" class="max-w-2xl w-full bg-white rounded-2xl shadow-xl overflow-hidden">
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-200 h-2">
+            <div id="progress-bar" class="bg-blue-600 h-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+
+        <div class="p-8">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-6">
+                <span id="question-counter" class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Ερώτηση 1 από 23</span>
+                <span id="score-display" class="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Score: 0</span>
+            </div>
+
+            <!-- Question Area -->
+            <div id="question-content" class="fade-in">
+                <h2 id="question-text" class="text-xl font-bold text-slate-800 mb-6 leading-tight">
+                    Φόρτωση ερώτησης...
+                </h2>
+
+                <div id="options-container" class="space-y-3">
+                    <!-- Options injected here -->
+                </div>
+            </div>
+
+            <!-- Feedback Area -->
+            <div id="feedback" class="mt-6 hidden p-4 rounded-lg text-center font-semibold"></div>
+
+            <!-- Footer Buttons -->
+            <div class="mt-8 flex justify-end">
+                <button id="next-btn" class="hidden bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl transition-colors shadow-lg shadow-blue-200">
+                    Επόμενη Ερώτηση
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="hidden max-w-md w-full bg-white rounded-3xl shadow-2xl p-10 text-center fade-in">
+        <div class="mb-6">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 text-green-600 rounded-full mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h2 class="text-3xl font-bold text-slate-800">Συγχαρητήρια!</h2>
+            <p class="text-slate-500 mt-2">Ολοκληρώσατε το Quiz με όλες τις ερωτήσεις.</p>
+        </div>
+        <div class="bg-slate-50 rounded-2xl p-6 mb-8">
+            <div class="text-5xl font-black text-blue-600 mb-2" id="final-score">0/0</div>
+            <div class="text-sm text-slate-400 font-medium uppercase tracking-widest">Τελικό Σκορ</div>
+        </div>
+        <button onclick="location.reload()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-2xl transition-all">
+            Επαναλήψη Quiz
+        </button>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                q: "34. Η κεφαλή του κονδύλου σχηματίζει τρεις επιφάνειες:",
+                options: ["εσωτερική – εξωτερική-πίσω", "εσωτερική – εξωτερική-εμπρός", "άνω – κάτω – πλάγια", "μόνο μία ενιαία επιφάνεια"],
+                correct: 0
+            },
+            {
+                q: "35. Ο διάρθριος δίσκος της κροταφογναθικής διάρθρωσης αποτελείται από διαπλεκόμενες ίνες:",
+                options: ["μόνο κολλαγόνου", "μόνο ελαστίνης", "κολλαγόνου και ελαστίνης", "μυϊκές ίνες"],
+                correct: 2
+            },
+            {
+                q: "36. Ο διάρθριος δίσκος της κροταφογναθικής διάρθρωσης έχει μεγαλύτερο τον εγκάρσιο άξονα που φέρεται λοξά:",
+                options: ["από κάτω και μπροστά προς τα πάνω", "από πάνω και πίσω προς τα κάτω και μπροστά", "οριζόντια και ευθεία", "κάθετα προς τον κόνδυλο"],
+                correct: 1
+            },
+            {
+                q: "37. Η κεφαλή του κονδύλου σχηματίζει τρεις επιφάνειες:",
+                options: ["Έσω, έξω και εμπρόσθια", "Άνω, κάτω και πλάγια", "Έξω, έσω και οπίσθια", "Μόνο μία αρθρική επιφάνεια"],
+                correct: 2
+            },
+            {
+                q: "38. Η δίεδρη γωνία της κεφαλής του κονδύλου που αντιστοιχεί στην οπίσθια οβελιαία αύλακα του πρόσθιου αρθρικού φύματος σχηματίζεται από:",
+                options: ["Την άνω και κάτω επιφάνεια", "Την έσω και έξω επιφάνεια του κονδύλου", "Τον δίσκο και τον σύνδεσμο", "Τον κρόταφο και τη γνάθο"],
+                correct: 1
+            },
+            {
+                q: "39. Ο διάρθριος δίσκος της κροταφογναθικής διάρθρωσης σε σχέση με την κίνηση της κάτω γνάθου:",
+                options: ["επιτρέπει τη μετατόπιση του κονδύλου προς κάθε κατεύθυνση", "περιορίζει την κίνηση μόνο μπροστά", "εμποδίζει κάθε είδους περιστροφή", "παραμένει σταθερός χωρίς να κινείται"],
+                correct: 0
+            },
+            {
+                q: "73. Οι οριακές θέσεις της κροταφογναθικής διάρθρωσης περιλαμβάνουν:",
+                options: ["τη θέση μέγιστης κατάσπασης", "τις θέσεις μέγιστης προολίσθησης και πλαγιολίσθησης", "τη θέση μέγιστης συναρμογής", "τη θέση ανάπαυσης", "Τα α+β"],
+                correct: 4
+            },
+            {
+                q: "74. Λειτουργικός φάκελος των οριακών κινήσεων της κάτω γνάθου ονομάζεται:",
+                options: ["ένα περίγραμμα κινήσεων που δημιουργούν οι ακραίες θέσεις των κινήσεων", "ένα περίγραμμα που δημιουργούν οι βασικές θέσεις", "η διαδρομή της μάσησης", "το γλίστρημα από την πρώτη επαφή στη μέγιστη συναρμογή"],
+                correct: 0
+            },
+            {
+                q: "75. Παράγοντες της κίνησης της κάτω γνάθου που σχετίζονται με τη συγκλεισιακή μορφολογία και τη λειτουργική δραστηριότητα:",
+                options: ["Οι βασικές θέσεις της κάτω γνάθου", "Οι ακραίες θέσεις της κάτω γνάθου", "Ο βαθμός, ο τύπος και η διεύθυνση της κίνησης", "Τα α+β", "Τα α+γ"],
+                correct: 4
+            },
+            {
+                q: "76. Τα κεντρικά ή υποβαστάζοντα φύματα των δοντιών της άνω γνάθου είναι:",
+                options: ["Τα παρειακά φύματα των προγομφίων και γομφίων", "Τα υπερώια φύματα των γομφίων και προγομφίων της άνω γνάθου", "Τα εγγύς υπερώια φύματα των γομφίων", "Τα κοπτικά άκρα"],
+                correct: 1
+            },
+            {
+                q: "77. Η διάταση του αγκιστρογναθικού συνδέσμου:",
+                options: ["προκαλεί πλαγιολίσθηση", "περιορίζει την προολίσθηση", "εμποδίζει την προς τα πίσω μετακίνηση του κονδύλου", "εμποδίζει την υπερβολική διάνοιξη του στόματος"],
+                correct: 3
+            },
+            {
+                q: "78. Οι μασητήριοι μύες μπορούν να αναπτύξουν δυνάμεις που κυμαίνονται μεταξύ:",
+                options: ["180-200 Kg", "200-250 Kg", "91-133 Kg", "71-91 Kg", "133-180 Kg"],
+                correct: 2
+            },
+            {
+                q: "79. Η πίεση που μπορεί να ασκήσει κάθε δόντι κατά την μάσηση δεν ξεπερνά τα:",
+                options: ["15-24 Kg", "24-33 Kg", "33-44 Kg", "45-54 Kg", "55-64 Kg"],
+                correct: 3
+            },
+            {
+                q: "80. Κριτήρια που συμμετέχουν στον χαρακτηρισμό μιας σύγκλεισης ως φυσιολογικής:",
+                options: ["συγκλεισιακή σταθερότητα", "ικανοποιητική μασητική λειτουργία, ομιλία και αισθητική", "απουσία συμπτωμάτων από ΚΓΔ και μύες", "Τα α+γ", "Τα α+β+γ"],
+                correct: 4
+            },
+            {
+                q: "81. Οι καθοριστικοί παράγοντες της λειτουργικής δραστηριότητας του στοματογναθικού συστήματος είναι:",
+                options: ["ΚΓΔ (Δεξιά/Αριστερή) και νευρομυϊκός μηχανισμός", "Σύγκλειση δοντιών", "Η μασητική ικανότητα", "Τα α+β+γ", "Τα α+β"],
+                correct: 4
+            },
+            {
+                q: "82. Η θέση 7 του διαγράμματος του Posselt αντιστοιχεί με:",
+                options: ["τη θέση μέγιστης κατάσπασης", "τη θέση σύγκλεισης συνήθειας", "τη θέση μέγιστης συναρμογής", "τη θέση έναρξης αμιγούς περιστροφής και λήξης μετατόπισης"],
+                correct: 3
+            },
+            {
+                q: "83. Οι βασικές κινήσεις της κάτω γνάθου είναι:",
+                options: ["η περιστροφή και η μετατόπιση", "η μετατόπιση και η αναπήδηση", "η περιστροφή και η αναπήδηση", "η πλαγιολίσθηση και η προσλίσθηση"],
+                correct: 0
+            },
+            {
+                q: "84. Οι περιστροφικές κινήσεις της κάτω γνάθου γίνονται γύρω από υποθετικό άξονα που μπορεί να είναι:",
+                options: ["οριζόντιος - κατακόρυφος - Οβελιαίος", "οριζόντιος - κατακόρυφος - διαγώνιος", "οβελιαίος και επιμήκης", "διαγώνιος και επιμήκης"],
+                correct: 0
+            },
+            {
+                q: "85. Κέντρο περιστροφής των κονδύλων ονομάζεται το σημείο τομής των υποθετικών αξόνων:",
+                options: ["οριζόντιου, κατακόρυφου και επιμήκη", "οριζόντιου, κατακόρυφου και διαγώνιου", "οριζόντιου, κατακόρυφου και οβελιαίου", "επιμήκη, διαγώνιου και οβελιαίου"],
+                correct: 2
+            },
+            {
+                q: "86. Η βασική μονάδα του νευρομυϊκού μηχανισμού σχηματίζεται από:",
+                options: ["μια μυϊκή ίνα και ένα αισθητικό νευρώνα", "μυϊκές ίνες και πολλούς νευρώνες", "μια μυϊκή ίνα και πολλούς νευρώνες", "μυϊκές ίνες και ένα κινητικό νευρώνα"],
+                correct: 3
+            },
+            {
+                q: "87. Οι κροταφογναθικές διαρθρώσεις προσαρμόζονται στις λειτουργικές ανάγκες του ΣΓΣ διότι παρουσιάζουν:",
+                options: ["Στατική ανατομική δομή", "Μικρές δομικές αλλαγές", "Έντονη λειτουργική δραστηριότητα", "Προσαρμοστικότητα του διάρθριου δίσκου"],
+                correct: 3
+            },
+            {
+                q: "88. Η προσαρμοστική ικανότητα των δοντιών στις οριζόντιες συγκλεισιακές δυνάμεις μειώνεται αισθητά:",
+                options: ["Στους γομφίους", "Στους προγομφίους", "Σε όλα τα πρόσθια δόντια", "Στους γομφίους και τους προγομφίους"],
+                correct: 3
+            },
+            {
+                q: "89. Η ισορρόπηση του μυϊκού τόνου και η μυϊκή αρμονία οφείλονται:",
+                options: ["Στη χαλάρωση των ανταγωνιστών μυών", "Στη σύσπαση των ανταγωνιστών", "Στην πίεση των δοντιών", "Στην κόπωση της γνάθου"],
+                correct: 0
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const questionCounter = document.getElementById('question-counter');
+        const scoreDisplay = document.getElementById('score-display');
+        const progressBar = document.getElementById('progress-bar');
+        const nextBtn = document.getElementById('next-btn');
+        const feedback = document.getElementById('feedback');
+
+        function loadQuestion() {
+            answered = false;
+            nextBtn.classList.add('hidden');
+            feedback.classList.add('hidden');
+            
+            const qData = questions[currentQuestion];
+            questionText.innerText = qData.q;
+            questionCounter.innerText = `Ερώτηση ${currentQuestion + 1} από ${questions.length}`;
+            
+            optionsContainer.innerHTML = '';
+            qData.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full text-left p-4 rounded-xl border-2 border-slate-200 font-medium text-slate-700 hover:border-blue-300 hover:bg-blue-50 transition-all focus:outline-none";
+                btn.innerText = opt;
+                btn.onclick = () => selectOption(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            const progress = ((currentQuestion) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function selectOption(index, btn) {
+            if (answered) return;
+            answered = true;
+
+            const correct = questions[currentQuestion].correct;
+            const allButtons = optionsContainer.querySelectorAll('button');
+
+            if (index === correct) {
+                score++;
+                btn.classList.add('correct');
+                showFeedback("Σωστή απάντηση! ✨", "text-green-600 bg-green-50");
+            } else {
+                btn.classList.add('wrong');
+                allButtons[correct].classList.add('correct');
+                showFeedback("Λάθος απάντηση. ❌", "text-red-600 bg-red-50");
+            }
+
+            scoreDisplay.innerText = `Score: ${score}`;
+            nextBtn.classList.remove('hidden');
+        }
+
+        function showFeedback(text, classes) {
+            feedback.innerText = text;
+            feedback.className = `mt-6 p-4 rounded-lg text-center font-bold fade-in ${classes}`;
+            feedback.classList.remove('hidden');
+        }
+
+        nextBtn.onclick = () => {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        };
+
+        function showResults() {
+            progressBar.style.width = "100%";
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('result-screen').classList.add('flex', 'flex-col', 'items-center');
+            document.getElementById('final-score').innerText = `${score}/${questions.length}`;
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
