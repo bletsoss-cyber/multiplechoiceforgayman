@@ -12,6 +12,7 @@
             font-family: 'Roboto', sans-serif;
             background-color: #f0f4f8;
             overflow-x: hidden;
+            margin: 0;
         }
 
         #main-canvas {
@@ -51,12 +52,6 @@
             border-color: #f56565 !important;
             color: #742a2a !important;
         }
-
-        #progress-container {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto;
-        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
@@ -64,19 +59,17 @@
     <canvas id="main-canvas"></canvas>
 
     <div id="quiz-container" class="max-w-3xl w-full relative z-10">
-        <!-- Start Screen -->
         <div id="start-screen" class="glass-card rounded-3xl p-8 text-center">
             <h1 class="text-3xl font-bold text-blue-800 mb-4">ΣΓΣ ΠΑΛΙΑ ΘΕΜΑΤΑ</h1>
             <p class="text-gray-600 mb-8">Ένα διαδραστικό τεστ 25 ερωτήσεων βασισμένο στην ύλη σας.</p>
-            <div id="progress-container">
+            <div id="progress-container" class="flex justify-center mb-6">
                 <canvas id="progress-canvas" width="120" height="120"></canvas>
             </div>
-            <button onclick="startQuiz()" class="mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-10 rounded-full shadow-lg transition-all transform hover:scale-105">
+            <button onclick="startQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-10 rounded-full shadow-lg transition-all transform hover:scale-105">
                 Έναρξη Τεστ
             </button>
         </div>
 
-        <!-- Question Screen -->
         <div id="question-screen" class="glass-card rounded-3xl p-8 hidden">
             <div class="flex justify-between items-center mb-6">
                 <span id="question-number" class="text-sm font-bold text-blue-500 uppercase tracking-widest">Ερώτηση 1 / 25</span>
@@ -90,8 +83,7 @@
             </h2>
 
             <div id="options-list" class="space-y-3">
-                <!-- Options injected here -->
-            </div>
+                </div>
 
             <div class="mt-8 flex justify-end">
                 <button id="next-btn" onclick="nextQuestion()" class="hidden bg-gray-800 hover:bg-black text-white font-bold py-2 px-8 rounded-xl transition-all">
@@ -100,7 +92,6 @@
             </div>
         </div>
 
-        <!-- Result Screen -->
         <div id="result-screen" class="glass-card rounded-3xl p-10 text-center hidden">
             <h2 class="text-4xl font-bold text-blue-900 mb-4">Τέλος Τεστ!</h2>
             <p class="text-xl text-gray-700 mb-6">Το τελικό σας σκορ είναι:</p>
@@ -134,196 +125,4 @@
             { q: "Μέθοδος για τον καθορισμό της ΚΔΣ είναι:", options: ["Ακτινογραφία", "Καταγραφή ΚΔ ανάπαυσης, σύγκλεισης και ελεύθερου χώρου", "Η αίσθηση του ασθενούς", "Ο προσανατολισμός του επιπέδου"], correct: 2 },
             { q: "Η κεντρική θέση (CR) είναι σημαντική γιατί:", options: ["Είναι η μόνη θέση μάσησης", "Είναι ανεξάρτητη από δόντια και αναπαραγώγιμη", "Είναι η θέση μέγιστης δύναμης", "Εκεί τα δόντια έχουν τις περισσότερες επαφές"], correct: 1 },
             { q: "Το πρωτογενές τραύμα σύγκλεισης προκαλείται από:", options: ["Περιοδοντίτιδα", "Υπερβολικές δυνάμεις σε υγιείς περιοδοντικούς ιστούς", "Μικρές δυνάμεις σε ασθενείς ιστούς", "Τερηδόνα"], correct: 1 },
-            { q: "Στον άξονα Ι των RDC/TMD, η Ομάδα ΙΙ αφορά:", options: ["Μυϊκές διαταραχές", "Αρθρικές διαταραχές", "Πρόσθια παρεκτόπιση του διάρθριου δίσκου", "Ψυχολογικούς παράγοντες"], correct: 2 },
-            { q: "Οι διαταραχές σύγκλεισης Τάξης Ι περιλαμβάνουν:", options: ["Βαθιά υπερσύγκλειση και ανοιχτή δήξη", "Προγναθισμό", "Σταυροειδή σύγκλειση", "Πλάγια απόκλιση"], correct: 0 },
-            { q: "Η θέση του δίσκου στη μέγιστη συναρμογή είναι:", options: ["Πίσω από τον κόνδυλο", "Η οπίσθια δεσμίδα πάνω από τον κόνδυλο και η ενδιάμεση ζώνη στην κλίση", "Μπροστά από τον κόνδυλο", "Μέσα στη γλήνη"], correct: 1 },
-            { q: "Στη σύγκλειση ομαδικών επαφών επιβάλλεται:", options: ["Μόνο ο κυνόδοντας να ακουμπά", "Στην εργαζόμενη πλευρά να καθοδηγούν ταυτόχρονα πρόσθια και οπίσθια", "Να μην ακουμπά τίποτα", "Να ακουμπά η μη εργαζόμενη"], correct: 1 },
-            { q: "Η κεντρική σύγκλειση των οδοντικών φραγμών:", options: ["Πραγματοποιείται στο τόξο της κεντρικής θέσης", "Είναι πάντα η σύγκλειση συνήθειας", "Είναι μια βίαιη κίνηση", "Δεν υπάρχει στον άνθρωπο"], correct: 0 }
-        ];
-
-        let currentQuestionIndex = 0;
-        let score = 0;
-        let isAnswered = false;
-
-        const mainCanvas = document.getElementById('main-canvas');
-        const ctx = mainCanvas.getContext('2d');
-        const progressCanvas = document.getElementById('progress-canvas');
-        const pCtx = progressCanvas.getContext('2d');
-
-        function resizeCanvas() {
-            mainCanvas.width = window.innerWidth;
-            mainCanvas.height = window.innerHeight;
-        }
-
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        // Particles System
-        let particles = [];
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.color = color;
-                this.size = Math.random() * 5 + 2;
-                this.speedX = Math.random() * 6 - 3;
-                this.speedY = Math.random() * -10 - 2;
-                this.gravity = 0.2;
-                this.opacity = 1;
-            }
-            update() {
-                this.speedY += this.gravity;
-                this.x += this.speedX;
-                this.y += this.speedY;
-                this.opacity -= 0.01;
-            }
-            draw() {
-                ctx.globalAlpha = this.opacity;
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        function createConfetti(x, y) {
-            const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-            for (let i = 0; i < 50; i++) {
-                particles.push(new Particle(x, y, colors[Math.floor(Math.random() * colors.length)]));
-            }
-        }
-
-        function animate() {
-            ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-            particles = particles.filter(p => p.opacity > 0);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            requestAnimationFrame(animate);
-        }
-        animate();
-
-        // Progress Circle Logic
-        function drawProgress(percent) {
-            const centerX = progressCanvas.width / 2;
-            const centerY = progressCanvas.height / 2;
-            const radius = 50;
-
-            pCtx.clearRect(0, 0, progressCanvas.width, progressCanvas.height);
-
-            // Background circle
-            pCtx.beginPath();
-            pCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-            pCtx.strokeStyle = '#e2e8f0';
-            pCtx.lineWidth = 10;
-            pCtx.stroke();
-
-            // Progress arc
-            const endAngle = (Math.PI * 2 * percent) - Math.PI / 2;
-            pCtx.beginPath();
-            pCtx.arc(centerX, centerY, radius, -Math.PI / 2, endAngle);
-            pCtx.strokeStyle = '#3b82f6';
-            pCtx.lineWidth = 10;
-            pCtx.lineCap = 'round';
-            pCtx.stroke();
-
-            // Text
-            pCtx.fillStyle = '#1e3a8a';
-            pCtx.font = 'bold 20px Roboto';
-            pCtx.textAlign = 'center';
-            pCtx.textBaseline = 'middle';
-            pCtx.fillText(`${Math.round(percent * 100)}%`, centerX, centerY);
-        }
-
-        drawProgress(0);
-
-        function startQuiz() {
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('question-screen').classList.remove('hidden');
-            showQuestion();
-        }
-
-        function showQuestion() {
-            isAnswered = false;
-            const q = questions[currentQuestionIndex];
-            document.getElementById('question-number').innerText = `Ερώτηση ${currentQuestionIndex + 1} / ${questions.length}`;
-            document.getElementById('question-text').innerText = q.q;
-            document.getElementById('next-btn').classList.add('hidden');
-            
-            const optionsList = document.getElementById('options-list');
-            optionsList.innerHTML = '';
-
-            q.options.forEach((opt, index) => {
-                const btn = document.createElement('button');
-                btn.className = "option-btn w-full text-left p-4 rounded-2xl border-2 border-gray-100 bg-white text-gray-700 font-medium hover:border-blue-300 focus:outline-none";
-                btn.innerText = opt;
-                btn.onclick = () => checkAnswer(index, btn);
-                optionsList.appendChild(btn);
-            });
-
-            drawProgress((currentQuestionIndex) / questions.length);
-        }
-
-        function checkAnswer(selectedIndex, btn) {
-            if (isAnswered) return;
-            isAnswered = true;
-
-            const q = questions[currentQuestionIndex];
-            const buttons = document.querySelectorAll('.option-btn');
-            
-            if (selectedIndex === q.correct) {
-                score++;
-                btn.classList.add('correct');
-                createConfetti(window.innerWidth / 2, window.innerHeight / 2);
-            } else {
-                btn.classList.add('wrong');
-                buttons[q.correct].classList.add('correct');
-            }
-
-            document.getElementById('score-badge').innerText = `Σκορ: ${score}`;
-            document.getElementById('next-btn').classList.remove('hidden');
-            
-            buttons.forEach(b => b.disabled = true);
-        }
-
-        function nextQuestion() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
-                showQuestion();
-            } else {
-                showResults();
-            }
-        }
-
-        function showResults() {
-            document.getElementById('question-screen').classList.add('hidden');
-            const resultScreen = document.getElementById('result-screen');
-            resultScreen.classList.remove('hidden');
-            
-            document.getElementById('final-score').innerText = `${score} / ${questions.length}`;
-            
-            let feedback = "";
-            const ratio = score / questions.length;
-            if (ratio === 1) feedback = "Τέλεια! Είστε ειδικός στη σύγκλειση!";
-            else if (ratio > 0.8) feedback = "Εξαιρετική προσπάθεια! Πολύ καλή γνώση.";
-            else if (ratio > 0.5) feedback = "Καλή προσπάθεια, αλλά χρειάζεται λίγη επανάληψη.";
-            else feedback = "Χρειάζεται περισσότερη μελέτη στις σημειώσεις.";
-            
-            document.getElementById('feedback-text').innerText = feedback;
-            
-            // Final confetti burst
-            for(let i=0; i<5; i++) {
-                setTimeout(() => {
-                    createConfetti(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
-                }, i * 300);
-            }
-        }
-    </script>
-</body>
-</html>
-
-
-
-
-
+            { q: "Στον άξονα Ι των RDC/TMD, η Ομάδα ΙΙ αφορά:", options: ["Μυϊκές διαταραχές", "Αρθρικές διαταραχές", "Πρόσθια
