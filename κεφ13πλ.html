@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Διαδραστικό Τεστ ΚΓΔ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col items-center p-4 md:p-8">
+
+    <div id="quiz-container" class="max-w-4xl w-full bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+        
+        <!-- Sidebar Navigation -->
+        <div class="w-full md:w-64 bg-slate-900 p-6 flex flex-col border-r border-slate-800">
+            <div class="mb-6">
+                <h2 class="text-white font-black text-xl tracking-tight leading-none mb-1">Πλοήγηση</h2>
+                <span class="text-slate-400 text-xs font-bold uppercase tracking-widest">35 Ερωτήσεις</span>
+            </div>
+            
+            <div id="nav-grid" class="grid grid-cols-5 md:grid-cols-4 gap-2 overflow-y-auto custom-scrollbar pr-2 mb-6 max-h-[300px] md:max-h-none">
+                <!-- Nav items generated via JS -->
+            </div>
+
+            <div class="mt-auto pt-4 border-t border-slate-800">
+                <button onclick="showFinalResults()" id="finish-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-flag-checkered"></i>
+                    Τερματισμός
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div id="main-content" class="flex-1 p-6 md:p-10 flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-8">
+                <div id="level-indicator" class="text-blue-600 font-black text-xs uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+                    Επίπεδο 1: Βασικές Έννοιες
+                </div>
+                <div id="progress-text" class="text-slate-400 font-bold text-sm tracking-tighter uppercase">
+                    Ερώτηση 1 / 35
+                </div>
+            </div>
+
+            <!-- Question & Options -->
+            <div id="question-view" class="flex-1 flex flex-col">
+                <h3 id="question-text" class="text-2xl md:text-3xl font-black text-slate-800 mb-8 leading-tight">
+                    <!-- Text generated via JS -->
+                </h3>
+
+                <div id="options-container" class="space-y-3 mb-8">
+                    <!-- Options generated via JS -->
+                </div>
+
+                <!-- Feedback Area -->
+                <div id="feedback-area" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500 mb-8">
+                    <div class="bg-blue-50 border border-blue-100 rounded-2xl p-5 flex gap-4">
+                        <div class="bg-blue-500 text-white w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                            <i class="fas fa-info-circle text-lg"></i>
+                        </div>
+                        <div>
+                            <span class="text-blue-500 font-black text-[10px] uppercase tracking-widest block mb-1">Αιτιολόγηση</span>
+                            <p id="rationale-text" class="text-blue-900 text-lg font-medium leading-relaxed italic"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Controls -->
+                <div class="mt-auto pt-6 border-t border-slate-50 flex justify-between gap-4">
+                    <button id="prev-btn" onclick="prevQuestion()" class="px-6 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black rounded-2xl transition-all flex items-center gap-2">
+                        <i class="fas fa-chevron-left"></i>
+                        Προηγούμενη
+                    </button>
+                    <button id="next-btn" onclick="nextQuestion()" class="px-6 py-4 bg-slate-900 hover:bg-black text-white font-black rounded-2xl transition-all flex items-center gap-2">
+                        Επόμενη
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results View (Hidden initially) -->
+    <div id="results-view" class="hidden max-w-lg w-full bg-white rounded-3xl shadow-2xl p-10 text-center border border-slate-100">
+        <div class="mb-6 flex justify-center">
+            <div class="bg-yellow-100 p-6 rounded-full animate-bounce">
+                <i class="fas fa-trophy text-5xl text-yellow-600"></i>
+            </div>
+        </div>
+        <h1 class="text-4xl font-black text-slate-800 mb-2">Ολοκληρώθηκε!</h1>
+        <p class="text-slate-500 text-lg mb-8">Το τελικό σας σκορ είναι:</p>
+        <div class="bg-slate-50 rounded-2xl p-8 mb-10">
+            <div id="final-score-text" class="text-7xl font-black text-blue-600 mb-2">0 / 35</div>
+            <div class="text-slate-400 font-bold uppercase text-sm tracking-widest">Συνολικά Σωστά</div>
+        </div>
+        <button onclick="location.reload()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-5 px-6 rounded-2xl transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-3 text-xl">
+            <i class="fas fa-redo"></i>
+            Επανάληψη Τεστ
+        </button>
+    </div>
+
+    <script>
+        const questions = [
+            { question: "Ποια είναι η βασική αρχή στην αντιμετώπιση των διαταραχών του διάρθριου δίσκου;", options: ["Προτίμηση σε επεμβατικές μεθόδους για ταχύτερη ίαση.", "Προτίμηση σε μη επεμβατικές μεθόδους λόγω κινδύνου της υγείας του ασθενούς.", "Άμεση διενέργεια δισκεκτομής.", "Αποκλειστική χρήση ισχυρών οπιοειδών."], correct: 1, rationale: "Σύμφωνα με τις φωτογραφίες, οι επεμβατικές μέθοδοι ενέχουν κινδύνους για την υγεία, γι' αυτό προτιμώνται οι συντηρητικές." },
+            { question: "Στην πρόσθια παρεκτόπιση του δίσκου ΜΕ ανάταξη, τι παρατηρείται κατά τη διάνοιξη;", options: ["Μόνιμος περιορισμός διάνοιξης στα 20 mm.", "Χαρακτηριστικός ήχος (clicking).", "Πλήρης ακινησία του κονδύλου.", "Αιμορραγία από τον ακουστικό πόρο."], correct: 1, rationale: "Ο ήχος παράγεται όταν ο κόνδυλος 'ανακτά' τον δίσκο κατά τη διάνοιξη." },
+            { question: "Ποιο είναι το τυπικό εύρος διάνοιξης σε έναν ασθενή με 'Closed Lock' (χωρίς ανάταξη);", options: ["40-50 mm.", "20-30 mm.", "5-10 mm.", "Πάνω από 60 mm."], correct: 1, rationale: "Στην παρεκτόπιση χωρίς ανάταξη, ο δίσκος εμποδίζει την πλήρη πρόσθια ολίσθηση του κονδύλου." },
+            { question: "Η μέθοδος του Ιπποκράτη χρησιμοποιείται για την αντιμετώπιση:", options: ["Της αγκύλωσης.", "Του οξέος εξαρθρήματος.", "Του κατάγματος του αυχένα του κονδύλου.", "Της ρευματοειδούς αρθρίτιδας."], correct: 1, rationale: "Πρόκειται για τον χειροκίνητο χειρισμό επαναφοράς του κονδύλου στην αρθρική γλήνη." },
+            { question: "Ο κυριότερος κίνδυνος μετά από μια αιμάρθρωση της ΚΓΔ είναι:", options: ["Η υπερπλασία του κονδύλου.", "Η πρόκληση αγκύλωσης λόγω οργάνωσης του αιματώματος.", "Η εμφάνιση τερηδόνας.", "Η πρόσθια χασματοδοντία."], correct: 1, rationale: "Το αίμα μέσα στην άρθρωση οργανώνεται σε ινώδη ιστό που μπορεί να οδηγήσει σε μόνιμη ακινησία (αγκύλωση)." },
+            { question: "Πρωτογενώς, η Οστεοαρθρίτιδα (ΟΑ) χαρακτηρίζεται ως:", options: ["Μικροβιακή λοίμωξη.", "Μη φλεγμονώδους φύσεως διαταραχή.", "Αυτοάνοσο νόσημα.", "Ψυχοσωματική εκδήλωση."], correct: 1, rationale: "Η ΟΑ ξεκινά ως μια εκφυλιστική διαδικασία χωρίς αρχική φλεγμονή." },
+            { question: "Πότε εμφανίζονται κλινικά συμπτώματα στην Οστεοαρθρίτιδα;", options: ["Με την έναρξη της ασυμπτωματικής διαδικασίας.", "Μόνο όταν προκύψουν δευτερογενείς φλεγμονώδεις αλλοιώσεις.", "Μόνο σε άτομα κάτω των 20 ετών.", "Αμέσως μόλις εμφανιστεί ο πρώτος τριγμός."], correct: 1, rationale: "Η εξέλιξη είναι ασυμπτωματική μέχρι να προκληθεί δευτερογενής φλεγμονή." },
+            { question: "Στην Οστεοαρθρίτιδα, η φλεγμονώδης αντίδραση είναι αποτέλεσμα:", options: ["Της συσσώρευσης προϊόντων αποδόμησης.", "Της χρήσης νάρθηκα σταθεροποίησης.", "Της λήψης ΜΣΑΦ.", "Του εμβολιασμού."], correct: 0, rationale: "Η αύξηση της εκφυλιστικής δραστηριότητας οδηγεί σε συσσώρευση υπολειμμάτων που πυροδοτούν τη φλεγμονή." },
+            { question: "Ποιος ήχος είναι ο πιο συχνός στην κλινική διάγνωση της Οστεοαρθρίτιδας;", options: ["Clicking (κλικ).", "Κριγμός (Crepitus).", "Σφύριγμα.", "Φύσημα."], correct: 1, rationale: "Ο κριγμός (ήχος τριβής) είναι το τυπικό εύρημα της οστεοαρθρίτιδας." },
+            { question: "Η Ρευματοειδής Αρθρίτιδα εμφανίζεται συχνότερα:", options: ["Στους άνδρες.", "Στις γυναίκες (αναλογία 1 άντρας προς 3 γυναίκες).", "Στα παιδιά κάτω των 5 ετών.", "Εξίσου και στα δύο φύλα."], correct: 1, rationale: "Η ΡΑ προσβάλλει τις γυναίκες με τριπλάσια συχνότητα σε σχέση με τους άνδρες." },
+            { question: "Η 'πρόσθια ανοικτή δήξη' είναι χαρακτηριστικό εύρημα σε προχωρημένη:", options: ["Παρεκτόπιση δίσκου με ανάταξη.", "Ρευματοειδή αρθρίτιδα.", "Αιμάρθρωση.", "Υπερπλασία κονδύλου."], correct: 1, rationale: "Η καταστροφή των κονδύλων μειώνει το οπίσθιο ύψος, προκαλώντας στροφή της γνάθου και ανοικτή δήξη." },
+            { question: "Τι αντιπροσωπεύει οργανικά η Οστεοαρθρίτιδα;", options: ["Μια υπερπλασία του χόνδρου.", "Μια οργανική ανεπάρκεια λόγω έλλειψης ισορροπίας στον κύκλο σύνθεσης και διάσπασης.", "Μια οξεία πυογόνο λοίμωξη.", "Μια μεταβολική νόσο του ήπατος."], correct: 1, rationale: "Είναι διαταραχή της ισορροπίας μεταξύ δημιουργίας και καταστροφής του αρθρικού ιστού." },
+            { question: "Στην ΟΑ, ο πόνος εντοπίζεται στην άρθρωση και:", options: ["Υποχωρεί κατά το άνοιγμα του στόματος.", "Εντείνεται κατά τη διάνοιξη του στόματος.", "Εξαφανίζεται κατά τη μάσηση.", "Μεταφέρεται στα κάτω άκρα."], correct: 1, rationale: "Η φόρτιση της άρθρωσης κατά τη διάνοιξη αυξάνει την επώδυνη αίσθηση." },
+            { question: "Η αγκύλωση της ΚΓΔ αντιμετωπίζεται χειρουργικά με:", options: ["Δισκεκτομή.", "Gap arthroplasty (δημιουργία κενού).", "Χειρισμό Ιπποκράτη.", "Τοποθέτηση νάρθηκα πρόσθιας τοποθέτησης."], correct: 1, rationale: "Απαιτείται αφαίρεση οστικής γέφυρας για να δημιουργηθεί κενό κίνησης." },
+            { question: "Η πρωινή δυσκαμψία είναι βασικό διαγνωστικό κριτήριο για τη:", options: ["Σηπτική αρθρίτιδα.", "Ρευματοειδή αρθρίτιδα.", "Υπερπλασία κονδύλου.", "Αιμάρθρωση."], correct: 1, rationale: "Η πρωινή δυσκαμψία είναι κλασικό κλινικό σημείο της Ρευματοειδούς Αρθρίτιδας." },
+            { question: "Στην ΟΑ των ασθενών, παρατηρείται μεγαλύτερη οριζόντια πρόταξη και:", options: ["Αυξημένη κατακόρυφη υπερκάλυψη.", "Μειωμένη κατακόρυφη υπερκάλυψη.", "Μηδενική απόσταση CR-MI.", "Πλήρης συμμετρία προσώπου."], correct: 1, rationale: "Η ΟΑ συνοδεύεται από μειωμένο overbite (κατακόρυφη υπερκάλυψη)." },
+            { question: "Τα DMARDs αποτελούν τη βασική συστηματική θεραπεία για τη:", options: ["Οστεοαρθρίτιδα.", "Ρευματοειδή αρθρίτιδα.", "Αγκύλωση.", "Σηπτική αρθρίτιδα."], correct: 1, rationale: "Τα τροποποιητικά της νόσου φάρμακα χρησιμοποιούνται για τον έλεγχο της ΡΑ." },
+            { question: "Ποιο είναι το κύριο εύρημα της σηπτικής αρθρίτιδας;", options: ["Ανώδυνος τριγμός.", "Έντονος πόνος, οίδημα, ερυθρότητα και πυρετό.", "Μονόπλευρη υπερπλασία κονδύλου.", "Click κατά τη διάνοιξη."], correct: 1, rationale: "Αυτά είναι τα τυπικά σημεία μιας οξείας πυογόνου λοίμωξης." },
+            { question: "Στην πρόσθια παρεκτόπιση ΧΩΡΙΣ ανάταξη, η κάτω γνάθος:", options: ["Αποκλίνει προς την υγιή πλευρά.", "Αποκλίνει προς την πάσχουσα πλευρά χωρίς επαναφορά.", "Παραμένει στην μέση γραμμή.", "Προβάλλει προς τα εμπρός."], correct: 1, rationale: "Η γνάθος 'στρίβει' προς την πλευρά που ο κόνδυλος δεν μπορεί να ολισθήσει μπροστά." },
+            { question: "Η υπερπλασία του κονδύλου προκαλεί χαρακτηριστικά:", options: ["Πρωινή δυσκαμψία.", "Ασυμμετρία προσώπου.", "Αιμάρθρωση.", "Closed lock."], correct: 1, rationale: "Η μονόπλευρη μεγέθυνση του κονδύλου οδηγεί σε εμφανή ασυμμετρία του προσώπου." },
+            // ... Adding specialized questions to save space
+            { question: "Πού εντοπίζονται ακτινογραφικά οι διαβρώσεις στη Ρευματοειδή Αρθρίτιδα εκτός από τον κόνδυλο;", options: ["Στο αρθρικό κύρτωμα (πρόσθιο αρθρικό φύμα).", "Στη στεφανιαία απόφυση.", "Στο σώμα της κάτω γνάθου.", "Μόνο στον έξω ακουστικό πόρο."], correct: 0, rationale: "Σύμφωνα με τις σημειώσεις, διαβρώσεις παρατηρούνται στον κόνδυλο ή στο πρόσθιο αρθρικό φύμα." },
+            { question: "Ποια είναι η φύση του πόνου στη Ρευματοειδή Αρθρίτιδα της ΚΓΔ;", options: ["Πόνος μόνο κατά τη διάνοιξη.", "Πόνος τόσο κατά την ανάπαυση όσο και κατά τη μάσηση.", "Πόνος μόνο τις βραδινές ώρες.", "Απουσία πόνου, μόνο ήχος κριγμού."], correct: 1, rationale: "Στη ΡΑ ο πόνος είναι παρών και στην ηρεμία και στη λειτουργία." },
+            { question: "Τι παρατηρείται στην απόσταση CR-MI στους ασθενείς με Οστεοαρθρίτιδα;", options: ["Είναι μικρότερη από το φυσιολογικό.", "Είναι μεγαλύτερη από το φυσιολογικό.", "Είναι πάντα μηδενική.", "Δεν επηρεάζεται από τη νόσο."], correct: 1, rationale: "Οι ασθενείς με ΟΑ εμφανίζουν μεγαλύτερη απόσταση μεταξύ κεντρικής θέσης και μέγιστης συναρμογής." },
+            { question: "Ποιο ακτινογραφικό εύρημα είναι κοινό στην ΟΑ και τη ΡΑ;", options: ["Υποχόνδριες κύστεις.", "Διεύρυνση αρθρικού χώρου.", "Υπερπλασία κονδύλου.", "Αιμάρθρωση."], correct: 0, rationale: "Και οι δύο καταστάσεις εμφανίζουν υποχόνδριες κύστεις (όπως οι κύστεις Ely στην ΟΑ)." },
+            { question: "Ποια είναι η πρωτογενής αιτία της οργανικής ανεπάρκειας στην ΟΑ;", options: ["Η εισβολή ιών.", "Η έλλειψη ισορροπίας στον κύκλο σύνθεσης και διάσπασης του ιστού.", "Η υπερβολική λήψη φαρμάκων.", "Η κληρονομική απουσία του δίσκου."], correct: 1, rationale: "Η ΟΑ ορίζεται ως οργανική ανεπάρκεια λόγω διατάραξης του μεταβολικού κύκλου του ιστού." },
+            { question: "Τι πυροδοτεί τη δευτερογενή φλεγμονώδη αντίδραση στην Οστεοαρθρίτιδα;", options: ["Η συσσώρευση προϊόντων αποδόμησης.", "Η χρήση νάρθηκα πρόσθιας τοποθέτησης.", "Η έλλειψη βιταμίνης D.", "Η υπερβολική ομιλία."], correct: 0, rationale: "Η αυξημένη εκφυλιστική δραστηριότητα παράγει κατάλοιπα που προκαλούν φλεγμονή." },
+            { question: "Σε ποια πλευρά εντοπίζεται σχεδόν πάντα ο πόνος στην Οστεοαρθρίτιδα;", options: ["Αμφοτερόπλευρα συμμετρικά.", "Εταιρόπλευρα (στη μία πλευρά).", "Μόνο στην υγιή πλευρά.", "Σε όλο το πρόσωπο διάχυτα."], correct: 1, rationale: "Η ΟΑ χαρακτηρίζεται σχεδόν πάντα από εταιρόπλευρο πόνο στην άρθρωση." },
+            { question: "Ποιο κάταγμα κονδύλου έχει τον υψηλότερο κίνδυνο πρόκλησης αγκύλωσης;", options: ["Το εξωαρθρικό κάταγμα αυχένα.", "Το ενδοαρθρικό κάταγμα κεφαλής.", "Το κάταγμα του σώματος της γνάθου.", "Το κάταγμα της στεφανιαίας απόφυσης."], correct: 1, rationale: "Τα ενδοαρθρικά κατάγματα κεφαλής είναι τα πιο επικίνδυνα για αγκύλωση." },
+            { question: "Τι χαρακτηρίζει την εξέλιξη της Οστεοαρθρίτιδας;", options: ["Είναι μια οξεία και γρήγορη διαδικασία.", "Είναι μια ασυμπτωματική διαδικασία μέχρι τη φλεγμονή.", "Συνοδεύεται πάντα από πυρετό.", "Θεραπεύεται πλήρως με αντιβιοτικά."], correct: 1, rationale: "Η ΟΑ εξελίσσεται σιωπηλά και γίνεται αντιληπτή μόνο όταν εμφανιστούν συμπτώματα φλεγμονής." },
+            { question: "Ποιο είναι το αποτέλεσμα της επιπέδωσης του κονδύλου στη ΡΑ;", options: ["Αύξηση του ύψους του προσώπου.", "Μείωση του αρθρικού διαστήματος και απώλεια οστικού ύψους.", "Δημιουργία clicking.", "Υπερκινητικότητα της γνάθου."], correct: 1, rationale: "Η επιπέδωση και η διάβρωση οδηγούν σε μείωση του ύψους και του αρθρικού διαστήματος." },
+            { question: "Πώς περιγράφεται η οριζόντια πρόταξη (overjet) στους ασθενείς με ΟΑ;", options: ["Μικρότερη από το φυσιολογικό.", "Μεγαλύτερη από το φυσιολογικό.", "Μηδενική.", "Αρνητική (προγναθισμός)."], correct: 1, rationale: "Η ΟΑ σχετίζεται με αυξημένη οριζόντια πρόταξη." },
+            { question: "Ποια είναι η ενδεδειγμένη αντιμετώπιση για τη σηπτική αρθρίτιδα;", options: ["Νάρθηκας σταθεροποίησης μόνο.", "Παροχέτευση και αντιβίωση.", "Χειρισμός Ιπποκράτη.", "Φυσικοθεραπεία."], correct: 1, rationale: "Ως λοίμωξη, απαιτεί άμεση αντιμετώπιση του πυώδους περιεχομένου και των μικροβίων." },
+            { question: "Τι προκαλεί την απόκλιση της γνάθου στην υπερπλασία του κονδύλου;", options: ["Η συρρίκνωση του πάσχοντος κονδύλου.", "Η υπερβολική ανάπτυξη του κονδύλου στη μία πλευρά.", "Η ύπαρξη αίματος στην άρθρωση.", "Ο τρισμός των μασητήρων."], correct: 1, rationale: "Η μονόπλευρη υπερανάπτυξη 'σπρώχνει' τη γνάθο προς την άλλη πλευρά, προκαλώντας ασυμμετρία." },
+            { question: "Στην πρόσθια παρεκτόπιση δίσκου με ανάταξη, ο ήχος clicking είναι συχνά:", options: ["Μονός (μόνο στο άνοιγμα).", "Αμοιβαίος (Reciprocal - στο άνοιγμα και στο κλείσιμο).", "Τριγμός (σαν χιόνι).", "Απουσιάζει τελείως."], correct: 1, rationale: "Το reciprocal click είναι τυπικό χαρακτηριστικό της ανάταξης του δίσκου." },
+            { question: "Γιατί η χειρουργική θεραπεία είναι η τελευταία επιλογή στις διαταραχές δίσκου;", options: ["Γιατί είναι πολύ ακριβή.", "Γιατί θέτει σε κίνδυνο την υγεία του ασθενούς.", "Γιατί δεν υπάρχουν εξειδικευμένοι γιατροί.", "Γιατί οι νάρθηκες είναι πάντα πιο αποτελεσματικοί."], correct: 1, rationale: "Η ασφάλεια του ασθενούς είναι ο κύριος λόγος για την προτίμηση των μη επεμβατικών μεθόδων." }
+        ];
+
+        let currentIndex = 0;
+        let userAnswers = new Array(questions.length).fill(null); // Stores {selectedIndex, isCorrect}
+
+        function initQuiz() {
+            renderNavGrid();
+            showQuestion(0);
+        }
+
+        function renderNavGrid() {
+            const grid = document.getElementById('nav-grid');
+            grid.innerHTML = '';
+            questions.forEach((_, idx) => {
+                const btn = document.createElement('button');
+                btn.innerText = idx + 1;
+                btn.id = `nav-btn-${idx}`;
+                btn.onclick = () => showQuestion(idx);
+                
+                // Styles
+                btn.className = "w-10 h-10 rounded-lg font-bold text-sm transition-all flex items-center justify-center ";
+                if (idx === currentIndex) {
+                    btn.classList.add("ring-2 ring-blue-500 ring-offset-2 ring-offset-slate-900 bg-slate-700 text-white");
+                } else if (userAnswers[idx] !== null) {
+                    btn.classList.add(userAnswers[idx].isCorrect ? "bg-green-600 text-white" : "bg-red-600 text-white");
+                } else {
+                    btn.classList.add("bg-slate-800 text-slate-400 hover:bg-slate-700");
+                }
+                
+                grid.appendChild(btn);
+            });
+        }
+
+        function showQuestion(index) {
+            currentIndex = index;
+            const q = questions[index];
+            const isAnswered = userAnswers[index] !== null;
+
+            // Header UI
+            document.getElementById('level-indicator').innerText = index < 20 ? "Επίπεδο 1: Βασικές Έννοιες" : "Επίπεδο 2: Εξειδικευμένες Λεπτομέρειες";
+            document.getElementById('progress-text').innerText = `Ερώτηση ${index + 1} / ${questions.length}`;
+            
+            // Question Text
+            document.getElementById('question-text').innerText = q.question;
+
+            // Options
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 md:p-5 rounded-2xl border-2 transition-all duration-300 flex items-center justify-between group ";
+                
+                let iconHtml = '<div class="w-6 h-6 rounded-full border-2 border-slate-200 shrink-0"></div>';
+
+                if (isAnswered) {
+                    btn.disabled = true;
+                    if (idx === q.correct) {
+                        btn.className += "bg-green-50 border-green-500 text-green-900";
+                        iconHtml = '<i class="fas fa-check-circle text-green-500 text-xl"></i>';
+                    } else if (idx === userAnswers[index].selectedIndex) {
+                        btn.className += "bg-red-50 border-red-500 text-red-900";
+                        iconHtml = '<i class="fas fa-times-circle text-red-500 text-xl"></i>';
+                    } else {
+                        btn.className += "bg-white border-slate-100 opacity-40";
+                    }
+                } else {
+                    btn.className += "bg-white border-slate-200 hover:border-blue-400 hover:shadow-md text-slate-700";
+                    btn.onclick = () => selectOption(idx);
+                }
+
+                btn.innerHTML = `<span class="font-bold text-lg leading-snug pr-4">${opt}</span>${iconHtml}`;
+                optionsContainer.appendChild(btn);
+            });
+
+            // Feedback & Nav buttons
+            const feedbackArea = document.getElementById('feedback-area');
+            if (isAnswered) {
+                feedbackArea.classList.remove('hidden');
+                document.getElementById('rationale-text').innerText = q.rationale;
+            } else {
+                feedbackArea.classList.add('hidden');
+            }
+
+            document.getElementById('prev-btn').disabled = index === 0;
+            document.getElementById('next-btn').innerText = index === questions.length - 1 ? "Αποτελέσματα" : "Επόμενη";
+            
+            renderNavGrid();
+        }
+
+        function selectOption(idx) {
+            if (userAnswers[currentIndex] !== null) return;
+            
+            const isCorrect = idx === questions[currentIndex].correct;
+            userAnswers[currentIndex] = { selectedIndex: idx, isCorrect: isCorrect };
+            
+            showQuestion(currentIndex);
+        }
+
+        function nextQuestion() {
+            if (currentIndex < questions.length - 1) {
+                showQuestion(currentIndex + 1);
+            } else {
+                showFinalResults();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                showQuestion(currentIndex - 1);
+            }
+        }
+
+        function showFinalResults() {
+            const score = userAnswers.filter(a => a && a.isCorrect).length;
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('results-view').classList.remove('hidden');
+            document.getElementById('final-score-text').innerText = `${score} / ${questions.length}`;
+            
+            // Score color
+            const pct = (score / questions.length) * 100;
+            const scoreEl = document.getElementById('final-score-text');
+            if (pct >= 80) scoreEl.className = "text-7xl font-black text-green-600 mb-2";
+            else if (pct >= 50) scoreEl.className = "text-7xl font-black text-blue-600 mb-2";
+            else scoreEl.className = "text-7xl font-black text-red-600 mb-2";
+        }
+
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>
