@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ΠΑΛΙΑ ΘΕΜΑΤΑ ΣΓΣ 2 - Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="quiz-container" class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl">
+        <!-- Header -->
+        <div class="mb-8 border-b pb-4">
+            <h1 class="text-2xl font-bold text-indigo-700">ΠΑΛΙΑ ΘΕΜΑΤΑ ΣΓΣ 2</h1>
+            <div class="flex justify-between items-center mt-2 text-sm text-gray-500">
+                <span id="progress-text">Ερώτηση 1 από 22</span>
+                <span id="score-text">Σκορ: 0</span>
+            </div>
+            <div class="w-full bg-gray-200 h-2 mt-3 rounded-full overflow-hidden">
+                <div id="progress-bar" class="bg-indigo-600 h-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Question Section -->
+        <div id="question-section">
+            <h2 id="question-text" class="text-lg font-semibold text-gray-800 mb-6 leading-tight">
+                Φόρτωση ερώτησης...
+            </h2>
+            <div id="options-container" class="space-y-3">
+                <!-- Options will be injected here -->
+            </div>
+        </div>
+
+        <!-- Feedback & Navigation -->
+        <div id="feedback" class="mt-6 hidden p-4 rounded-lg font-semibold text-center"></div>
+        
+        <button id="next-btn" class="mt-6 w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition hidden shadow-lg">
+            Επόμενη Ερώτηση
+        </button>
+
+        <!-- Final Result Screen -->
+        <div id="result-screen" class="hidden text-center">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Τέλος Quiz!</h2>
+            <p id="final-score" class="text-xl mb-6 text-indigo-600 font-bold"></p>
+            <div id="performance-msg" class="text-gray-600 mb-8"></div>
+            <button onclick="restartQuiz()" class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition">
+                Επανεκκίνηση
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                q: "12. Η διάταση του αγκιστρογναθικού συνδέσμου:",
+                options: ["προκαλεί πλαγιολίσθηση της κάτω γνάθου", "περιορίζει την προολίσθηση της κάτω γνάθου", "εμποδίζει την προς τα πίσω μετακίνηση του κονδύλου", "εμποδίζει την υπερβολική διάνοιξη του στόματος", "Τα α+β"],
+                correct: 3
+            },
+            {
+                q: "13. Η φυσιολογική λειτουργική διέγερση του περιοδοντίου δημιουργείται όταν:",
+                options: ["η δύναμη που ασκείται στα δόντια είναι κατακόρυφη με φυσιολογική τιμή φόρτισης", "κατακόρυφη διαλείπουσα", "συνεχής, παράλληλη με τον επιμήκη άξονα", "διαλείπουσα παράλληλη με τον επιμήκη άξονα", "προς όλες τις κατευθύνσεις διαλείπουσα"],
+                correct: 0
+            },
+            {
+                q: "14. Η μικρή κατακόρυφη επικάλυψη απαιτεί:",
+                options: ["υψηλά φύματα και ρηχά βοθρία στα πίσω δόντια", "έντονη κυρτότητα των υπερώιων επιφανειών των πάνω μπροστινών δοντιών", "κοντά φύματα και βαθύτερα βοθρία των πίσω δοντιών", "κοντά φύματα και ρηχά βοθρία στα πίσω δόντια", "έντονη καμπύλη του Spee"],
+                correct: 3
+            },
+            {
+                q: "15. Όσο μεγαλύτερη είναι η διακονδυλική απόσταση:",
+                options: ["τόσο περισσότερο προς τα εγγύς πρέπει να είναι οι αύλακες των πάνω πίσω και τόσο προς τα άπω οι αύλακες των κάτω πίσω δοντιών", "τόσο περισσότερο προς τα άπω πρέπει να είναι οι αύλακες των πάνω πίσω και τόσο προς τα εγγύς οι αύλακες των κάτω πίσω δοντιών", "τόσο οι εργαζόμενες αύλακες των πάνω πίσω δοντιών πρέπει να είναι προς τα εγγύς", "Τα α+β", "Τα α+γ"],
+                correct: 0
+            },
+            {
+                q: "16. Η σύγκλειση συνήθειας συμβαίνει όταν:",
+                options: ["υπάρχει κεντρική σύγκλειση ταυτόχρονα με τη κεντρική θέση", "η μέγιστη συναρμογή επιτυγχάνεται μετά από έντονο γλίστρημα της κάτω γνάθου", "η μέγιστη συναρμογή επιτυγχάνεται χωρίς τη μετατόπιση των κονδύλων από την κεντρική θέση", "επιτυγχάνεται η μέγιστη συναρμογή και οι κόνδυλοι δεν είναι επικεντρωμένοι στις κροταφικές γλήνες", "η τροχιά ανάσπασης της κάτω γνάθου είναι προσαρμοζόμενη"],
+                correct: 3
+            },
+            {
+                q: "17. Η θεωρητική άποψη των P.M.S. υποστηρίζει:",
+                options: ["την επιβολή της πρόσθιας στην οπίσθια καθοδήγηση", "ότι κανένα καθοδηγητικό στοιχείο δεν επιβάλλεται στο άλλο", "την επιβολή της πρόσθιας στην οπίσθια καθοδήγηση και την ύπαρξη ελεύθερης κεντρικής σύγκλεισης", "την υποχρεωτική σύμπτωση κεντρικής θέσης και μέγιστης συναρμογής", "την τριποδική επαφή των πίσω δοντιών"],
+                correct: 0
+            },
+            {
+                q: "18. Στη σύγκλειση ομαδικών επαφών το άπω φύμα του 36 πραγματοποιεί κεντρική επαφή:",
+                options: ["στο κεντρικό βοθρίο του 26", "στη μασητική αγκάλη 26-27", "στο άπω βοθρίο του 26", "στο εγγύς βοθρίο του 27", "στο εγγύς βοθρίο του 26"],
+                correct: 2
+            },
+            {
+                q: "19. Η κεφαλή του κονδύλου της κάτω γνάθου αποτελείται από τις εξής επιφάνειες:",
+                options: ["μία πάνω και δύο πλάγιες", "δύο μπροστινές και μία οπίσθια", "δύο πίσω και μία εμπρός", "δύο πάνω και μία πίσω", "δύο πλάγιες και μια οπίσθια"],
+                correct: 4
+            },
+            {
+                q: "20. Η μακρά κεντρική σύγκλειση (Long Centric) επιτυγχάνεται:",
+                options: ["μετά από γλίστρημα στη μέγιστη συναρμογή", "στο τέλος της σκελετικής τροχιάς ανάσπασης της κάτω γνάθου", "με την αλλαγή της σκελετικής σε προσαρμοζόμενη τροχιά", "με την αλλαγή της προσαρμοζόμενης σε σκελετική τροχιά", "με την σύμπτωση μέγιστης συναρμογής και κεντρικής θέσης"],
+                correct: 2
+            },
+            {
+                q: "21. Η σύγκλειση συνήθειας δεν συμβαίνει όταν:",
+                options: ["η κάτω γνάθος ακολουθεί την προσαρμοζόμενη τροχιά ανάσπασης", "η μέγιστη συναρμογή επιτυγχάνεται χωρίς τη μετατόπιση των κονδύλων", "η μέγιστη συναρμογή επιτυγχάνεται ενώ οι κόνδυλοι δεν είναι επικεντρωμένοι", "η σκελετική τροχιά ανάσπασης μεταβάλλεται σε προσαρμοζόμενη", "όταν δεν υπάρχει γλίστρημα στην κεντρική"],
+                correct: 1
+            },
+            {
+                q: "22. Η θεωρητική άποψη των Γναθολόγων δεν υποστηρίζει:",
+                options: ["την τριποδική επαφή των οπισθίων δοντιών", "την υποχρεωτική ύπαρξη μόνον σκελετικής τροχιάς ανάσπασης", "την επιβολή της πρόσθιας καθοδήγησης", "την υποχρεωτική σύμπτωση κεντρικής θέσης και μέγιστης συναρμογής", "τίποτα από τα παραπάνω"],
+                correct: 2
+            },
+            {
+                q: "69. Τα ιδιοδεκτικά όργανα του ΣΓΣ εντοπίζονται:",
+                options: ["στη ΚΓΔ στους μύς και στους τένοντες", "στους μύς, στους τένοντες και στο περιοδόντιο", "στη ΚΓΔ και στους τένοντες των μυών", "στη ΚΓΔ, στους μύς, στους τένοντες και στο περιοδόντιο", "στο περιοδόντιο, στο βλεννογόνο, στους μύς και στη ΚΓΔ"],
+                correct: 3
+            },
+            {
+                q: "70. Οι τενόντιες άτρακτοι (Golgi) διεγείρονται:",
+                options: ["από την τάση του τένοντα κατά την ενεργητική συστολή", "από την τάση του τένοντα είτε κατά την ενεργητική συστολή είτε κατά τη παθητική διάταση", "από την τάση του τένοντα κατά τη παθητική διάταση", "από τη διάταση του διάρθριου δίσκου", "από την εξάσκηση τάσης στο ενδοφάτνιο"],
+                correct: 1
+            },
+            {
+                q: "71. Η μυϊκή απάντηση στο ερέθισμα που προκαλεί η ελκτική δύναμη ονομάζεται:",
+                options: ["αντανακλαστικό της μυϊκής συστολής", "πολυσυναπτικό αντανακλαστικό", "επίκτητο αντανακλαστικό", "μυοτατικό αντανακλαστικό", "μονοσυναπτικό αντανακλαστικό"],
+                correct: 3
+            },
+            {
+                q: "72. Βασικές θέσεις χαρακτηρίζονται οι:",
+                options: ["κεντρική θέση και θέση ανάπαυσης", "θέση ανάπαυσης", "θέση προολίσθησης", "δεξιά και αριστερή πλαγιολίσθηση", "κεντρική θέση"],
+                correct: 0
+            },
+            {
+                q: "138. Η οδοντική επαφή μεταξύ δύο εσωτερικών επικλινών επιπέδων μεταξύ δύο φυμάτων ονομάζεται:",
+                options: ["Πρόωρη επαφή", "Παρεμβολή", "Επαφή μη εργαζόμενης", "Κεντρική επαφή"],
+                correct: 1
+            },
+            {
+                q: "139. Η οδοντική επαφή που εμποδίζει την κάτω γνάθο να τοποθετηθεί στην θέση της κεντρικής σχέσης:",
+                options: ["Πρόωρη", "Παρεμβολή", "Πρόσθια καθοδήγηση", "Ομαδική επαφή"],
+                correct: 0
+            },
+            {
+                q: "140. Η οδοντική επαφή στην μη εργαζόμενη πλευρά στα οπίσθια δόντια ονομάζεται:",
+                options: ["Πρόωρη επαφή", "Παρεμβολή", "Επαφή της μη εργαζόμενης πλευράς", "Επαφή εργαζόμενης"],
+                correct: 2
+            },
+            {
+                q: "29. Σύγκλειση ομαδικών επαφών, αριστερή πλευρά. Επιθυμητή κεντρική επαφή:",
+                options: ["επαφή του παρειακού φύματος 34 στη μασητική αγκάλη 24-25", "επαφή του παρειακού φύματος 35 στη μασητική αγκάλη 23-24", "επαφή του άπω παρειακού φύματος 36 στο εγγύς βοθρίο 27", "επαφή του άπω φύματος του 36 στο άπω βοθρίο του 26", "επαφή του άπω παρειακού φύματος 37 στο άπω βοθρίο 26"],
+                correct: 3
+            },
+            {
+                q: "31. Τα κύρια μέλη του Στοματογναθικού Συστήματος (ΣΓΣ) είναι:",
+                options: ["ΚΓΔ και νευρομυϊκός μηχανισμός", "Υπερώα και οπισθογόμφια επάρματα", "Δόντια και περιοδόντιο", "Τα α+β+γ", "Τα α+γ"],
+                correct: 4
+            },
+            {
+                q: "32. Κάθε ΚΓΔ αποτελείται από:",
+                options: ["Τις αρθρικές επιφάνειες", "Τον διάρθριο δίσκο και τον αρθρικό θύλακο", "Τον οπισθοδισκικό ιστό και τους συνδέσμους", "Τα α+β+γ", "Τα α+β"],
+                correct: 3
+            },
+            {
+                q: "33. Η σχισμή του Glaser χωρίζει την κροταφική γλήνη σε:",
+                options: ["μία μπροστινή (λεπιδοειδές) και μια πίσω (τυμπανικό)", "μία μπροστινή (τυμπανικό) και μια πίσω (λεπιδοειδές)", "μία άνω και μία κάτω μοίρα", "μία οπίσθια και μία πρόσθια μοίρα", "δύο πλάγιες μοίρες"],
+                correct: 0
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedback = document.getElementById('feedback');
+        const nextBtn = document.getElementById('next-btn');
+        const progressText = document.getElementById('progress-text');
+        const scoreText = document.getElementById('score-text');
+        const progressBar = document.getElementById('progress-bar');
+        const resultScreen = document.getElementById('result-screen');
+        const questionSection = document.getElementById('question-section');
+
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            questionText.textContent = q.q;
+            optionsContainer.innerHTML = '';
+            feedback.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            
+            progressText.textContent = `Ερώτηση ${currentQuestion + 1} από ${questions.length}`;
+            progressBar.style.width = `${((currentQuestion) / questions.length) * 100}%`;
+
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full text-left p-4 rounded-xl border-2 border-gray-100 bg-gray-50 hover:border-indigo-300 text-gray-700 font-medium transition-all";
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected, btn) {
+            const q = questions[currentQuestion];
+            const allBtns = optionsContainer.querySelectorAll('button');
+            
+            allBtns.forEach(b => b.disabled = true);
+
+            if (selected === q.correct) {
+                score++;
+                btn.classList.replace('bg-gray-50', 'bg-green-100');
+                btn.classList.replace('border-gray-100', 'border-green-500');
+                feedback.textContent = "Σωστή Απάντηση! ✨";
+                feedback.className = "mt-6 p-4 rounded-lg font-semibold text-center bg-green-50 text-green-700";
+            } else {
+                btn.classList.replace('bg-gray-50', 'bg-red-100');
+                btn.classList.replace('border-gray-100', 'border-red-500');
+                
+                const correctBtn = allBtns[q.correct];
+                correctBtn.classList.replace('bg-gray-50', 'bg-green-100');
+                correctBtn.classList.replace('border-gray-100', 'border-green-500');
+                
+                feedback.textContent = "Λάθος. Η σωστή απάντηση επισημαίνεται με πράσινο.";
+                feedback.className = "mt-6 p-4 rounded-lg font-semibold text-center bg-red-50 text-red-700";
+            }
+
+            scoreText.textContent = `Σκορ: ${score}`;
+            feedback.classList.remove('hidden');
+            nextBtn.classList.remove('hidden');
+            
+            if (currentQuestion === questions.length - 1) {
+                nextBtn.textContent = "Εμφάνιση Αποτελέσματος";
+            }
+        }
+
+        nextBtn.onclick = () => {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        };
+
+        function showResults() {
+            questionSection.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            feedback.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            progressBar.style.width = '100%';
+            
+            const percent = (score / questions.length) * 100;
+            document.getElementById('final-score').textContent = `${score} / ${questions.length} (${percent.toFixed(1)}%)`;
+            
+            let msg = "";
+            if (percent === 100) msg = "Τέλεια! Είσαι ειδικός στο ΣΓΣ!";
+            else if (percent >= 80) msg = "Πολύ καλή απόδοση! Συνέχισε έτσι.";
+            else if (percent >= 50) msg = "Καλή προσπάθεια, αλλά χρειάζεται λίγη ακόμα μελέτη.";
+            else msg = "Πρέπει να μελετήσεις ξανά τις σημειώσεις σου.";
+            
+            document.getElementById('performance-msg').textContent = msg;
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            scoreText.textContent = "Σκορ: 0";
+            resultScreen.classList.add('hidden');
+            questionSection.classList.remove('hidden');
+            loadQuestion();
+        }
+
+        // Init
+        loadQuestion();
+    </script>
+</body>
+</html>
