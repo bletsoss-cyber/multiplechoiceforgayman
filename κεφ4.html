@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Σύγκλεισης & Νευροπλαστικότητας</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .question-card { display: none; }
+        .question-card.active { display: block; }
+        .correct { background-color: #d1fae5; border-color: #10b981; }
+        .incorrect { background-color: #fee2e2; border-color: #ef4444; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen py-10 px-4">
+    <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+        <!-- Header -->
+        <div class="bg-blue-600 p-6 text-white text-center">
+            <h1 class="text-2xl font-bold uppercase tracking-wider">Τεστ Αυτοαξιολόγησης: Κεφάλαιο 4</h1>
+            <p class="mt-2 opacity-80 text-sm">Σελίδες 45 - 54 | Σύγκλειση & Νευροπλαστικότητα</p>
+        </div>
+
+        <div id="quiz-container" class="p-8">
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200 h-2 rounded-full mb-8">
+                <div id="progress" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 5%;"></div>
+            </div>
+
+            <div id="questions">
+                <!-- Questions will be injected here by JS -->
+            </div>
+
+            <!-- Controls -->
+            <div class="mt-8 flex justify-between items-center border-t pt-6">
+                <button id="prev-btn" onclick="changeQuestion(-1)" class="px-6 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition hidden font-semibold">Προηγούμενο</button>
+                <div id="counter" class="text-slate-500 font-medium">Ερώτηση 1 / 20</div>
+                <button id="next-btn" onclick="checkAnswer()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md transition font-semibold">Έλεγχος</button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden p-10 text-center">
+            <div class="mb-6">
+                <svg class="w-20 h-20 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <h2 class="text-3xl font-bold text-slate-800">Ολοκληρώθηκε!</h2>
+            <p id="score-text" class="text-xl text-slate-600 mt-4"></p>
+            <button onclick="location.reload()" class="mt-8 px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-bold uppercase tracking-wide">Επανάληψη Τεστ</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                q: "Ποιο είναι το φυσιολογικό εύρος του Συγκλεισιακού Απτικού Ουδού Αντίληψης (ΣΟΑ) σε υγιή φυσικά δόντια;",
+                options: ["1 - 5 μm", "8 - 60 μm", "100 - 150 μm", "200 - 300 μm"],
+                correct: [1],
+                rationale: "Σύμφωνα με τη σελίδα 46, ο ΣΟΑ για φυσικά δόντια κυμαίνεται από 8 έως 60 μm."
+            },
+            {
+                q: "Πόσες φορές αυξάνεται ο ΣΟΑ μετά από ενδοδοντική θεραπεία (απώλεια αισθητικότητας);",
+                options: ["1,5 - 2 φορές", "2,5 - 8 φορές", "10 - 15 φορές", "Δεν μεταβάλλεται"],
+                correct: [1],
+                rationale: "Σύμφωνα με το κείμενο στη σελίδα 46, στα ενδοδοντικά θεραπευμένα δόντια ο ουδός αντίληψης αυξάνεται κατά 2,5 έως 8 φορές."
+            },
+            {
+                q: "Ποιοι παράγοντες ΜΕΙΩΝΟΥΝ τον ΣΟΑ (δηλαδή αυξάνουν την ευαισθησία); (Περισσότερες από μία σωστές)",
+                options: ["Άγχος", "Εστίαση της προσοχής", "Τοποθέτηση εμφυτεύματος", "Ενδοδοντική θεραπεία"],
+                correct: [0, 1],
+                rationale: "Ψυχολογικοί παράγοντες όπως το άγχος και η προσοχή κάνουν τον εγκέφαλο πιο ευαίσθητο (σελ. 46)."
+            },
+            {
+                q: "Τι ορίζεται ως Συγκλεισιακή Υπερεγρήγορση (Hypervigilance);",
+                options: ["Η παρουσία παρεμβολών", "Η υπερβολική εστίαση και επαγρύπνηση του ασθενούς στη σύγκλεισή του", "Η φλεγμονή του περιοδοντίου", "Η αδυναμία διάνοιξης στόματος"],
+                correct: [1],
+                rationale: "Είναι μια κεντρική διεργασία προσοχής όπου ο ασθενής 'παρακολουθεί' εμμονικά τα δόντια του."
+            },
+            {
+                q: "Ποιο είναι το ελάχιστο χρονικό διάστημα για τη διάγνωση της Συγκλεισιακής Δυσαισθησίας;",
+                options: ["1 μήνας", "3 μήνες", "6 μήνες", "1 έτος"],
+                correct: [2],
+                rationale: "Η δυσαισθησία θεωρείται χρόνια όταν η αίσθηση παθολογικής σύγκλεισης διαρκεί πάνω από 6 μήνες (σελ. 48)."
+            },
+            {
+                q: "Η Συγκλεισιακή Δυσαισθησία οφείλεται σε δυσαρμονία μεταξύ:",
+                options: ["Άνω και κάτω γνάθου", "Αντιληπτικής και Γνωστικής λειτουργίας", "Μυών και Αρθρώσεων", "Περιοδοντίου και Πολφού"],
+                correct: [1],
+                rationale: "Είναι η αναντιστοιχία ανάμεσα σε αυτό που νιώθει το δόντι (αντίληψη) και πώς το ερμηνεύει ο εγκέφαλος (γνωστική λειτουργία)."
+            },
+            {
+                q: "Ποιος είναι ο 'Χρυσός Κανόνας' αντιμετώπισης της δυσαισθησίας;",
+                options: ["Συνεχείς τροχισμοί μέχρι να βολευτεί ο ασθενής", "Αποφυγή συγκλεισιακών τροχισμών", "Εξαγωγή του ενοχλητικού δοντιού", "Ολική προσθετική αποκατάσταση"],
+                correct: [1],
+                rationale: "SOS: Οι τροχισμοί επιδεινώνουν τον φαύλο κύκλο και την εμμονή του ασθενούς."
+            },
+            {
+                q: "Πόσους βαθμούς ελευθερίας έχει η κίνηση της κάτω γνάθου;",
+                options: ["3", "4", "6", "12"],
+                correct: [2],
+                rationale: "Έχει 6 βαθμούς ελευθερίας (3 μεταφορικές και 3 περιστροφικές κινήσεις) - σελ. 50."
+            },
+            {
+                q: "Τι είναι το Sensory Gating κατά τη μάσηση;",
+                options: ["Το κλείδωμα της γνάθου", "Η καταστολή της αντίληψης ερεθισμάτων για διευκόλυνση της κίνησης", "Η αύξηση της αίσθησης πόνου", "Ο ήχος της άρθρωσης"],
+                correct: [1],
+                rationale: "Ο εγκέφαλος 'φιλτράρει' τις πληροφορίες από τα δόντια για να επικεντρωθεί στον έλεγχο των μυών."
+            },
+            {
+                q: "Σε πόσο χρόνο προσαρμόζονται συνήθως υγιή άτομα σε πειραματικές συγκλεισιακές παρεμβολές;",
+                options: ["1-2 ημέρες", "1-2 εβδομάδες", "6 μήνες", "Ποτέ"],
+                correct: [1],
+                rationale: "Σύμφωνα με τη σελίδα 52, οι περισσότεροι προσαρμόζονται εντός 1 έως 2 εβδομάδων."
+            },
+            {
+                q: "Η 'Ιδανική Σύγκλειση' στην κλινική πράξη θεωρείται:",
+                options: ["Απαραίτητη για όλους", "Θεωρητική έννοια (μοντέλο)", "Η μόνη υγιής κατάσταση", "Αδύνατη να επιτευχθεί"],
+                correct: [1],
+                rationale: "Είναι ένα θεωρητικό πρότυπο. Στην πράξη αναζητούμε τη φυσιολογική σύγκλειση."
+            },
+            {
+                q: "Ποια από τα παρακάτω είναι Ιατρικά Ανεξήγητα Συμπτώματα (ΙΑΣ) που συνδέονται με τη δυσαισθησία; (Περισσότερες από μία σωστές)",
+                options: ["Ινομυαλγία", "Σύνδρομο ευερέθιστου εντέρου", "Τερηδόνα", "Περιοδοντίτιδα"],
+                correct: [0, 1],
+                rationale: "Αυτές οι καταστάσεις συχνά συνυπάρχουν σε ασθενείς με κεντρική ευαισθητοποίηση."
+            },
+            {
+                q: "Η 'Κιναισθητική Νευροπλαστικότητα' αφορά:",
+                options: ["Την κίνηση των δοντιών", "Την αναδιοργάνωση του κινητικού φλοιού για τον έλεγχο της γνάθου", "Τη φθορά των αρθρώσεων", "Την οστεοποίηση των συνδέσμων"],
+                correct: [1],
+                rationale: "Είναι η ικανότητα του εγκεφάλου να προσαρμόζει τα κινητικά προγράμματα σε νέα δεδομένα."
+            },
+            {
+                q: "Ποια είναι η σύγχρονη άποψη για τη σχέση παρεμβολών και βρυγμού;",
+                options: ["Οι παρεμβολές προκαλούν πάντα βρυγμό", "Δεν θεωρούνται πλέον η κύρια αιτία του βρυγμού", "Ο βρυγμός θεραπεύεται με τροχισμό", "Οι παρεμβολές σταματούν τον βρυγμό"],
+                correct: [1],
+                rationale: "Ο βρυγμός θεωρείται πλέον κεντρικής αιτιολογίας και όχι αποτέλεσμα παρεμβολών (σελ. 53)."
+            },
+            {
+                q: "Ποιο φάρμακο μπορεί να βοηθήσει στη διαχείριση της δυσαισθησίας;",
+                options: ["Αντιβιοτικά", "Αντικαταθλιπτικά χαμηλής δόσης", "Βιταμίνη D", "Ασπιρίνη"],
+                correct: [1],
+                rationale: "Βοηθούν στη ρύθμιση της επεξεργασίας των αισθητικών πληροφοριών στον εγκέφαλο."
+            },
+            {
+                q: "Ο νάρθηκας τύπου Michigan χρησιμοποιείται στη δυσαισθησία για:",
+                options: ["Να ισιώσει τα δόντια", "Να παρέχει σταθερότητα και αποφόρτιση του συστήματος", "Να προκαλέσει πόνο", "Να αντικαταστήσει τα δόντια"],
+                correct: [1],
+                rationale: "Είναι ένας σταθεροποιητικός νάρθηκας που προσφέρει ομοιόμορφο περιβάλλον."
+            },
+            {
+                q: "Σε σχέση με τα φυσικά δόντια, ο ΣΟΑ στα εμφυτεύματα είναι:",
+                options: ["Χαμηλότερος (πιο ευαίσθητα)", "Υψηλότερος (λιγότερο ευαίσθητα)", "Ίδιος", "Μηδενικός"],
+                correct: [1],
+                rationale: "Τα εμφυτεύματα δεν έχουν περιοδόντιο, άρα η αισθητικότητα είναι μειωμένη (υψηλότερος ουδός)."
+            },
+            {
+                q: "Ποια είναι η σωστή προσέγγιση για τη θεραπεία της δυσαισθησίας; (Περισσότερες από μία σωστές)",
+                options: ["Καθησυχασμός (Education)", "Γνωσιακή Θεραπεία (CBT)", "Προσθετική αποκατάσταση πλήρους φραγμού", "Χειρουργική γνάθου"],
+                correct: [0, 1],
+                rationale: "Η θεραπεία πρέπει να είναι συντηρητική και να απευθύνεται στη γνωστική λειτουργία."
+            },
+            {
+                q: "Τι σημαίνει 'Γνωστική Λειτουργία' (Cognition) στη σύγκλειση;",
+                options: ["Η πίεση στα δόντια", "Η ερμηνεία και η σημασία που δίνει ο εγκέφαλος στην επαφή των δοντιών", "Η κίνηση των μυών", "Ο αριθμός των επαφών"],
+                correct: [1],
+                rationale: "Αφορά τις πεποιθήσεις και τις σκέψεις του ασθενούς για τη σύγκλεισή του."
+            },
+            {
+                q: "Ποιο είναι το αποτέλεσμα της 'Αισθητικής Καταστολής' (Sensory Gating) κατά τη λειτουργία;",
+                options: ["Αυξημένος πόνος", "Μειωμένη επίγνωση των δοντιών κατά τη μάσηση", "Κάταγμα δοντιών", "Τρίξιμο δοντιών"],
+                correct: [1],
+                rationale: "Επιτρέπει στο άτομο να μασάει χωρίς να 'σκέφτεται' κάθε επαφή των δοντιών του."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+
+        function initQuiz() {
+            const container = document.getElementById('questions');
+            quizData.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = `question-card ${index === 0 ? 'active' : ''}`;
+                div.innerHTML = `
+                    <h3 class="text-xl font-bold text-slate-800 mb-6">${index + 1}. ${item.q}</h3>
+                    <div class="space-y-3">
+                        ${item.options.map((opt, i) => `
+                            <div onclick="selectOption(${index}, ${i})" class="option border-2 border-slate-200 rounded-xl p-4 cursor-pointer hover:bg-slate-50 transition flex items-center gap-3" data-idx="${i}">
+                                <div class="w-6 h-6 border-2 border-slate-300 rounded-full flex-shrink-0"></div>
+                                <span class="text-slate-700">${opt}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div id="rationale-${index}" class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded hidden text-sm text-blue-800 italic">
+                        <strong>Αιτιολόγηση:</strong> ${item.rationale}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function selectOption(qIdx, oIdx) {
+            const card = document.querySelectorAll('.question-card')[qIdx];
+            const options = card.querySelectorAll('.option');
+            
+            const target = options[oIdx];
+            target.classList.toggle('bg-blue-50');
+            target.classList.toggle('border-blue-400');
+            const circle = target.querySelector('div');
+            circle.classList.toggle('bg-blue-500');
+            circle.classList.toggle('border-blue-500');
+        }
+
+        function checkAnswer() {
+            const card = document.querySelectorAll('.question-card')[currentQuestion];
+            const options = card.querySelectorAll('.option');
+            const selected = Array.from(options).filter(o => o.classList.contains('border-blue-400')).map(o => parseInt(o.getAttribute('data-idx')));
+            
+            if (selected.length === 0) return;
+
+            const correctIndices = quizData[currentQuestion].correct;
+            const isCorrect = JSON.stringify(selected.sort()) === JSON.stringify(correctIndices.sort());
+
+            options.forEach((opt, i) => {
+                const idx = parseInt(opt.getAttribute('data-idx'));
+                if (correctIndices.includes(idx)) {
+                    opt.classList.add('correct');
+                } else if (selected.includes(idx)) {
+                    opt.classList.add('incorrect');
+                }
+                opt.style.pointerEvents = 'none';
+            });
+
+            document.getElementById(`rationale-${currentQuestion}`).classList.remove('hidden');
+            
+            if (isCorrect) score++;
+
+            document.getElementById('next-btn').innerText = (currentQuestion === quizData.length - 1) ? "Αποτέλεσμα" : "Επόμενο";
+            document.getElementById('next-btn').onclick = () => {
+                if (currentQuestion < quizData.length - 1) {
+                    changeQuestion(1);
+                } else {
+                    showResults();
+                }
+            };
+        }
+
+        function changeQuestion(step) {
+            const cards = document.querySelectorAll('.question-card');
+            cards[currentQuestion].classList.remove('active');
+            currentQuestion += step;
+            cards[currentQuestion].classList.add('active');
+
+            // Reset UI
+            document.getElementById('next-btn').innerText = "Έλεγχος";
+            document.getElementById('next-btn').onclick = checkAnswer;
+            
+            document.getElementById('counter').innerText = `Ερώτηση ${currentQuestion + 1} / 20`;
+            document.getElementById('progress').style.width = `${((currentQuestion + 1) / 20) * 100}%`;
+            document.getElementById('prev-btn').classList.toggle('hidden', currentQuestion === 0);
+        }
+
+        function showResults() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            const percentage = (score / 20) * 100;
+            document.getElementById('score-text').innerHTML = `Σκορ: <strong>${score} / 20</strong> (${percentage}%)<br><br>${percentage >= 80 ? 'Εξαιρετικά! Είσαι έτοιμος για τις εξετάσεις.' : 'Καλή προσπάθεια. Ξαναδές τα SOS σημεία.'}`;
+        }
+
+        initQuiz();
+    </script>
+</body>
+</html>
