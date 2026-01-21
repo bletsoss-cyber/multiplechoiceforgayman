@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Κουίζ Σύγκλεισης - Κεφάλαιο 7</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .option-label { transition: all 0.2s ease; }
+        .option-label:not(.disabled):hover { background-color: #f3f4f6; }
+        .correct-bg { background-color: #d1fae5 !important; border-color: #10b981 !important; color: #065f46 !important; font-weight: 600; }
+        .wrong-bg { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; }
+        .disabled { cursor: default; opacity: 0.8; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen py-10 px-4">
+    <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-blue-600 p-6 text-white text-center">
+            <h1 class="text-2xl font-bold italic">Κεφάλαιο 7: Interactive Occlusion Quiz</h1>
+            <p class="text-blue-100 mt-2">25 Ερωτήσεις βασισμένες στο σύγγραμμα του I. Klineberg</p>
+        </div>
+
+        <div id="quiz-container" class="p-6 space-y-8">
+            <!-- Questions injected here -->
+        </div>
+
+        <div class="p-6 border-t border-gray-100 flex flex-col items-center space-y-4">
+            <div id="score-display" class="text-xl font-bold text-gray-800 text-center">
+                Απαντήστε στις ερωτήσεις για να δείτε το σκορ σας.
+            </div>
+            <button onclick="resetQuiz()" class="text-blue-600 hover:underline text-sm font-medium">
+                Επανεκκίνηση Κουίζ
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                q: "1. Ποια θέση ορίζεται ως η πιο άνω και πρόσθια θέση των κονδύλων στη γλήνη, ανεξάρτητα από τις οδοντικές επαφές;",
+                options: ["Μέγιστη Συναρμογή (ΜΣ)", "Κεντρική Σχέση (ΚΣ)", "Θέση Ανάπαυσης"],
+                correct: 1
+            },
+            {
+                q: "2. Σε τι ποσοστό του πληθυσμού η θέση πρώτης επαφής στην Κεντρική Σχέση συμπίπτει με τη Μέγιστη Συναρμογή;",
+                options: ["10%", "50%", "90%"],
+                correct: 0
+            },
+            {
+                q: "3. Ποιο διάγραμμα περιγράφει το πλήρες εύρος των κινήσεων της κάτω γνάθου σε τρία επίπεδα;",
+                options: ["Διάγραμμα του Bennett", "Διάγραμμα του Posselt", "Διάγραμμα του Spee"],
+                correct: 1
+            },
+            {
+                q: "4. Ο ελεύθερος μεσοφραγματικός χώρος υπολογίζεται από τη διαφορά μεταξύ:",
+                options: ["ΚΣ και ΜΣ", "Κάθετης Διάστασης Ανάπαυσης (ΚΔΑ) και Κάθετης Διάστασης Σύγκλεισης (ΚΔΣ)", "Πρόσθιας και Οπίσθιας καθοδήγησης"],
+                correct: 1
+            },
+            {
+                q: "5. Ποια δόντια θεωρούνται οι καταλληλότεροι 'αισθητήρες' για την προστασία του ΣΓΣ λόγω υψηλής δυναμικής ευαισθησίας;",
+                options: ["Γομφίοι", "Προγόμφιοι", "Κυνόδοντες"],
+                correct: 2
+            },
+            {
+                q: "6. Η γωνία Bennett σχηματίζεται από τον κόνδυλο της:",
+                options: ["Εργαζόμενης πλευράς", "Μη εργαζόμενης (αντισταθμίζουσας) πλευράς", "Πλευράς προολίσθησης"],
+                correct: 1
+            },
+            {
+                q: "7. Τι ορίζεται ως 'προολίσθηση' (Protrusion);",
+                options: ["Η πλάγια κίνηση της γνάθου", "Η προς τα εμπρός κίνηση της κάτω γνάθου", "Το άνοιγμα του στόματος"],
+                correct: 1
+            },
+            {
+                q: "8. Η 'Άπω Κυνοδοντική Καθοδήγηση' σχετίζεται κλινικά με:",
+                options: ["Βαθιά δήξη", "Χασμοδοντία", "Σταυροειδή σύγκλειση"],
+                correct: 0
+            },
+            {
+                q: "9. Ποια είναι η σύγχρονη επιστημονική άποψη για τη σχέση σύγκλεισης και Κροταφογναθικών Διαταραχών (ΚΓΔ);",
+                options: ["Η κακή σύγκλειση είναι η κύρια αιτία των ΚΓΔ", "Δεν υπάρχει άμεση αιτιολογική σχέση (πολυπαραγοντική φύση)", "Μόνο οι πρόωρες επαφές προκαλούν ΚΓΔ"],
+                correct: 1
+            },
+            {
+                q: "10. Στη θεωρία του 'Βραχέος Οδοντικού Τόξου' (BOT), ποια είναι η ελάχιστη οδοντοφυΐα για επαρκή λειτουργία;",
+                options: ["14 δόντια", "10 ζεύγη δοντιών (πρόσθια και προγόμφιοι)", "Πλήρης οδοντοφυΐα (28-32 δόντια)"],
+                correct: 1
+            },
+            {
+                q: "11. Ποια πλευρά ονομάζεται 'εργαζόμενη' κατά την πλάγια κίνηση;",
+                options: ["Αυτή προς την οποία κινείται η γνάθος", "Αυτή από την οποία απομακρύνεται η γνάθος", "Η πλευρά που δεν έχει δόντια"],
+                correct: 0
+            },
+            {
+                q: "12. Η 'Πρόσθια Καθοδήγηση' καθορίζεται κυρίως από:",
+                options: ["Τους γομφίους", "Την οριζόντια και κατακόρυφη υπερκάλυψη των προσθίων δοντιών", "Τον κόνδυλο"],
+                correct: 1
+            },
+            {
+                q: "13. Τι προκαλούν οι παρεμβολές στη μη εργαζόμενη πλευρά;",
+                options: ["Μείωση του μυϊκού τόνου", "Δράση μοχλού που αυξάνει τη συμπίεση στην άρθρωση", "Βελτίωση της μάσησης"],
+                correct: 1
+            },
+            {
+                q: "14. Ποια θέση της κάτω γνάθου καθορίζεται από τη 'τονική ισορροπία' των μυών;",
+                options: ["Μέγιστη Συναρμογή", "Θέση Ανάπαυσης", "Κεντρική Σχέση"],
+                correct: 1
+            },
+            {
+                q: "15. Οι κεντρικές επαφές κατά τη Μέγιστη Συναρμογή πραγματοποιούνται από τα:",
+                options: ["Κοπτικά χείλη των τομέων", "Λειτουργικά (υποβαστάζοντα) φύματα", "Μη λειτουργικά φύματα"],
+                correct: 1
+            },
+            {
+                q: "16. Ποιο είναι το όριο της στατικής ευαισθησίας (πίεσης) για τα οπίσθια δόντια;",
+                options: ["< 1.0 N", "> 4.0 N", "10 N"],
+                correct: 1
+            },
+            {
+                q: "17. Ο όρος 'Retruded Jaw Position' είναι συνώνυμος με:",
+                options: ["Τη Μέγιστη Προολίσθηση", "Την Κεντρική Σχέση", "Τη Μέγιστη Συναρμογή"],
+                correct: 1
+            },
+            {
+                q: "18. Η 'Εγγύς Κυνοδοντική Καθοδήγηση' επιτρέπει στους κονδύλους:",
+                options: ["Μόνο περιστροφή", "Συνδυασμό περιστροφής και μετατόπισης", "Μόνο πλάγια ολίσθηση"],
+                correct: 1
+            },
+            {
+                q: "19. Η 'Καμπύλη του Spee' αναφέρεται στη διάταξη των δοντιών στο:",
+                options: ["Οβελιαίο επίπεδο", "Εγκάρσιο επίπεδο", "Μετωπιαίο επίπεδο"],
+                correct: 0
+            },
+            {
+                q: "20. Τι ονομάζουμε 'Φάκελο Λειτουργίας';",
+                options: ["Το διάγραμμα των οριακών κινήσεων", "Τις κινήσεις κατά τη μάσηση που καθορίζονται από την οδοντική καθοδήγηση", "Την ανατομία της ΚΓΔ"],
+                correct: 1
+            },
+            {
+                q: "21. Ποιος μυς παρουσιάζει μειωμένη δραστηριότητα κατά την κυνοδοντική καθοδήγηση;",
+                options: ["Έξω πτερυγοειδής", "Πρόσθιος κροταφίτης και μασητήρας", "Διγάστορας"],
+                correct: 1
+            },
+            {
+                q: "22. Η 'Αμφίπλευρα Ισοζυγισμένη Σύγκλειση' θεωρείται σήμερα επιθυμητή κυρίως σε:",
+                options: ["Φυσικά δόντια", "Ολικές οδοντοστοιχίες", "Μεμονωμένα εμφυτεύματα"],
+                correct: 1
+            },
+            {
+                q: "23. Κατά τη μάσηση, η μέγιστη συγκλεισιακή σταθερότητα παρατηρείται στη:",
+                options: ["Κεντρική Σχέση", "Μέγιστη Συναρμογή", "Θέση Ανάπαυσης"],
+                correct: 1
+            },
+            {
+                q: "24. Η οριζόντια πρόταξη (overjet) των προσθίων δοντιών επηρεάζει:",
+                options: ["Την οπίσθια καθοδήγηση", "Την πρόσθια καθοδήγηση", "Τη θέση ανάπαυσης"],
+                correct: 1
+            },
+            {
+                q: "25. Ποιο στοιχείο είναι απαραίτητο για μια 'Αποδεκτή Θεραπευτική Σύγκλειση';",
+                options: ["Πλήρης ορθοδοντική διόρθωση", "Εναρμόνιση της ΜΣ με μια σταθερή θέση των κονδύλων (ΚΣ)", "Αφαίρεση όλων των γομφίων"],
+                correct: 1
+            }
+        ];
+
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = questions.map((item, qIdx) => `
+                <div class="question-block border-b border-gray-100 pb-6 last:border-0" id="q-block-${qIdx}">
+                    <p class="font-semibold text-gray-800 mb-4">${item.q}</p>
+                    <div class="space-y-2" id="options-${qIdx}">
+                        ${item.options.map((opt, oIdx) => `
+                            <label class="option-label flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer transition-all" id="label-${qIdx}-${oIdx}">
+                                <input type="radio" name="question-${qIdx}" value="${oIdx}" 
+                                       onclick="handleSelection(${qIdx}, ${oIdx})" 
+                                       class="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-700">${opt}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function handleSelection(qIdx, selectedIdx) {
+            const correctIdx = questions[qIdx].correct;
+            const block = document.getElementById(`options-${qIdx}`);
+            const inputs = block.querySelectorAll('input');
+            const labels = block.querySelectorAll('.option-label');
+
+            // Prevent re-selection
+            if (block.getAttribute('data-answered') === 'true') return;
+            block.setAttribute('data-answered', 'true');
+
+            // Feedback logic
+            labels[correctIdx].classList.add('correct-bg');
+            if (selectedIdx === correctIdx) {
+                score++;
+            } else {
+                labels[selectedIdx].classList.add('wrong-bg');
+            }
+
+            // Disable all other options in this question
+            inputs.forEach(input => input.disabled = true);
+            labels.forEach(label => label.classList.add('disabled'));
+
+            answeredCount++;
+            updateScoreUI();
+        }
+
+        function updateScoreUI() {
+            const display = document.getElementById('score-display');
+            display.innerHTML = `Σκορ: <span class="text-blue-600">${score} / ${questions.length}</span> (Απαντημένες: ${answeredCount}/${questions.length})`;
+            
+            if (answeredCount === questions.length) {
+                display.innerHTML += `<br><span class="text-sm font-normal text-gray-500">Ολοκληρώθηκε! ${score > 20 ? 'Εξαιρετικά!' : 'Καλή προσπάθεια!'}</span>`;
+            }
+        }
+
+        function resetQuiz() {
+            score = 0;
+            answeredCount = 0;
+            document.getElementById('score-display').innerHTML = "Απαντήστε στις ερωτήσεις για να δείτε το σκορ σας.";
+            renderQuiz();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.onload = renderQuiz;
+    </script>
+</body>
+</html>
