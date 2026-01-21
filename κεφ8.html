@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Κουίζ Διάγνωσης Σύγκλεισης - Κεφάλαιο 8</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+
+        .quiz-info {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .question-container {
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .question-container.active {
+            display: block;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .options {
+            list-style: none;
+            padding: 0;
+        }
+
+        .option-item {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .option-item:hover:not(.locked) {
+            background: #eef2f7;
+            border-color: var(--secondary-color);
+        }
+
+        /* Άμεση ανατροφοδότηση χρωμάτων */
+        .option-item.correct {
+            background-color: var(--success-color) !important;
+            color: white !important;
+            border-color: #1e8449 !important;
+        }
+
+        .option-item.wrong {
+            background-color: var(--error-color) !important;
+            color: white !important;
+            border-color: #c0392b !important;
+        }
+
+        .option-item.locked {
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        #next-btn { background-color: var(--secondary-color); color: white; }
+        #prev-btn { background-color: #95a5a6; color: white; }
+        #submit-btn { background-color: var(--success-color); color: white; display: none; }
+
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        #results {
+            display: none;
+            text-align: center;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Κουίζ Διάγνωσης Σύγκλεισης</h1>
+    <div class="quiz-info">Ερώτηση <span id="current-q-num">1</span> από 20</div>
+    
+    <div id="quiz-body">
+        <!-- Ερωτήσεις -->
+    </div>
+
+    <div class="controls">
+        <button id="prev-btn" onclick="changeQuestion(-1)" disabled>Προηγούμενη</button>
+        <button id="next-btn" onclick="changeQuestion(1)">Επόμενη</button>
+        <button id="submit-btn" onclick="showResults()">Τελικό Σκορ</button>
+    </div>
+
+    <div id="results">
+        <h2>Αποτελέσματα</h2>
+        <div class="score-circle" id="score-display">0/20</div>
+        <p id="final-msg"></p>
+        <button onclick="location.reload()" style="background: var(--primary-color); color: white;">Επαναφορά Κουίζ</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            q: "Τι είναι η Κεντρική Σχέση (CR);",
+            options: [
+                "Η θέση όπου τα δόντια έχουν τη μέγιστη επαφή.",
+                "Μια αναπαραγώγιμη θέση της γνάθου που εξαρτάται από τις αρθρώσεις.",
+                "Η θέση της γνάθου κατά την ομιλία.",
+                "Η θέση μέγιστης διάνοιξης του στόματος."
+            ],
+            correct: 1
+        },
+        {
+            q: "Ποιο ποσοστό του πληθυσμού εμφανίζει 'ολίσθηση' (slide) από την CR στην MI;",
+            options: ["10%", "50%", "90%", "100%"],
+            correct: 2
+        },
+        {
+            q: "Ποιο χρώμα χαρτιού αρθρώσεως χρησιμοποιείται συνήθως για τις δυναμικές κινήσεις;",
+            options: ["Μαύρο", "Κόκκινο", "Πράσινο", "Μπλε"],
+            correct: 2
+        },
+        {
+            q: "Γιατί είναι απαραίτητο το στέγνωμα των δοντιών πριν τη χρήση χαρτιού σύγκλεισης;",
+            options: [
+                "Για να μην πονάει ο ασθενής.",
+                "Γιατί το σάλιο εμποδίζει την ακριβή αποτύπωση των σημείων.",
+                "Για να φαίνονται καλύτερα οι αποτριβές.",
+                "Δεν είναι απαραίτητο."
+            ],
+            correct: 1
+        },
+        {
+            q: "Ποια είναι η φυσιολογική οδοντική φθορά ανά έτος;",
+            options: ["5μm", "50μm", "500μm", "1mm"],
+            correct: 1
+        },
+        {
+            q: "Τι υποδηλώνουν οι βρυγμοφασέτες (bruxofacets);",
+            options: [
+                "Καλή στοματική υγιεινή.",
+                "Ενεργό ή προηγούμενο βρυγμό.",
+                "Φυσιολογική γήρανση των δοντιών.",
+                "Τερηδονική προσβολή."
+            ],
+            correct: 1
+        },
+        {
+            q: "Ο ημερήσιος βρυγμός εκδηλώνεται κυρίως ως:",
+            options: ["Τρίξιμο των δοντιών.", "Σφίξιμο (clenching).", "Χασμουρητό.", "Δυσφαγία."],
+            correct: 1
+        },
+        {
+            q: "Με τι συνδέεται πλέον ο νυχτερινός βρυγμός σύμφωνα με το κείμενο;",
+            options: [
+                "Με κακή διατροφή.",
+                "Με διαταραχές ύπνου (π.χ. άπνοια).",
+                "Αποκλειστικά με ένα δόντι που προεξέχει.",
+                "Με την ηλικία του ασθενούς."
+            ],
+            correct: 1
+        },
+        {
+            q: "Στο τεστ φόρτισης της ΚΓΔ με σπάτουλα, αν ο πόνος εμφανιστεί στην αντίθετη πλευρά, η βλάβη είναι πιθανότατα:",
+            options: ["Μυϊκή.", "Ενδοαρθρική.", "Οδοντική.", "Νευρολογική."],
+            correct: 1
+        },
+        {
+            q: "Πόση ώρα πρέπει να σφίξει ο ασθενής τα δόντια του στο τεστ πρόκλησης για τους μύες;",
+            options: ["5 δευτερόλεπτα", "30 δευτερόλεπτα", "2 λεπτά", "5 λεπτά"],
+            correct: 1
+        },
+        {
+            q: "Τι σημαίνει ο όρος 'Κριγμός' (Crepitus) στην άρθρωση;",
+            options: [
+                "Ήχος σαν τρίψιμο άμμου, ένδειξη εκφυλιστικής νόσου.",
+                "Ένας απλός ξερός ήχος (κλικ).",
+                "Φυσιολογικός ήχος λίπανσης.",
+                "Πλήρης αδυναμία κίνησης."
+            ],
+            correct: 0
+        },
+        {
+            q: "Ποιος μυς εμφανίζει συχνά υπερτροφία σε χρόνιους βρυγμομανείς;",
+            options: ["Βυκανητής", "Μασητήρας", "Στερνοκλειδομαστοειδής", "Γλωσσικός"],
+            correct: 1
+        },
+        {
+            q: "Τι είναι τα DC/TMD κριτήρια;",
+            options: [
+                "Οδηγίες για λεύκανση δοντιών.",
+                "Διεθνή τυποποιημένα διαγνωστικά κριτήρια για τις ΚΓΔ.",
+                "Μια μέθοδος κατασκευής θηκών.",
+                "Τύπος οδοντόκρεμας."
+            ],
+            correct: 1
+        },
+        {
+            q: "Ποιος είναι ο κύριος σκοπός της διάγνωσης της σύγκλεισης;",
+            options: [
+                "Να γίνει το χαμόγελο πιο λευκό.",
+                "Να διασφαλιστεί η ομοιόμορφη κατανομή των δυνάμεων.",
+                "Να μειωθεί ο χρόνος της θεραπείας.",
+                "Να αποφευχθεί η χρήση αναισθησίας."
+            ],
+            correct: 1
+        },
+        {
+            q: "Η καθοδήγηση των κυνόδοντων χρησιμεύει στο:",
+            options: [
+                "Να κόβουμε καλύτερα τις τροφές.",
+                "Να προστατεύονται τα πίσω δόντια από πλάγιες δυνάμεις.",
+                "Να σταθεροποιείται η οδοντοστοιχία.",
+                "Να διευκολύνεται η ομιλία."
+            ],
+            correct: 1
+        },
+        {
+            q: "Τι ονομάζουμε 'πρόωρη επαφή';",
+            options: [
+                "Όταν ένα δόντι ανατέλλει νωρίτερα από το κανονικό.",
+                "Όταν ένα δόντι έρχεται σε επαφή πριν από τα υπόλοιπα κατά το κλείσιμο.",
+                "Την επαφή των δοντιών κατά την παιδική ηλικία.",
+                "Την πρώτη επίσκεψη στον οδοντίατρο."
+            ],
+            correct: 1
+        },
+        {
+            q: "Ποια είναι η ιδανική θέση των κονδύλων κατά την CR;",
+            options: [
+                "Στο πιο οπίσθιο σημείο της γλήνης.",
+                "Στην πιο πρόσθια-άνω θέση έναντι της πλαγιάς του αρθρικού επάρματος.",
+                "Έξω από τη γλήνη.",
+                "Σε επαφή με τον έξω ακουστικό πόρο."
+            ],
+            correct: 1
+        },
+        {
+            q: "Η παραλειτουργία περιλαμβάνει:",
+            options: ["Μάσηση και κατάποση.", "Ομιλία.", "Βρυγμό και δάγκωμα νυχιών/αντικειμένων.", "Αναπνοή."],
+            correct: 2
+        },
+        {
+            q: "Ποια κατάσταση περιγράφεται ως 'πρωινό πιάσιμο' των μυών;",
+            options: ["Οδοντική ευαισθησία.", "Μυϊκή κόπωση λόγω νυχτερινού βρυγμού.", "Ουλίτιδα.", "Ξηροστομία."],
+            correct: 1
+        },
+        {
+            q: "Γιατί η διάγνωση της σύγκλεισης προηγείται της προσθετικής θεραπείας;",
+            options: [
+                "Για να αυξηθεί το κόστος.",
+                "Για να εξασφαλιστεί η μακροζωία των αποκαταστάσεων.",
+                "Είναι προαιρετικό βήμα.",
+                "Για να επιλεγεί το χρώμα των δοντιών."
+            ],
+            correct: 1
+        }
+    ];
+
+    let currentQuestion = 0;
+    const userAnswers = Array(questions.length).fill(null);
+
+    function initQuiz() {
+        const quizBody = document.getElementById('quiz-body');
+        questions.forEach((q, index) => {
+            const div = document.createElement('div');
+            div.className = `question-container ${index === 0 ? 'active' : ''}`;
+            div.id = `q-${index}`;
+            
+            let optionsHTML = '';
+            q.options.forEach((opt, optIndex) => {
+                optionsHTML += `
+                    <li class="option-item" id="opt-${index}-${optIndex}" onclick="selectOption(${index}, ${optIndex})">
+                        ${opt}
+                    </li>
+                `;
+            });
+
+            div.innerHTML = `
+                <div class="question-text">${index + 1}. ${q.q}</div>
+                <ul class="options">${optionsHTML}</ul>
+            `;
+            quizBody.appendChild(div);
+        });
+    }
+
+    function selectOption(qIdx, optIdx) {
+        if (userAnswers[qIdx] !== null) return; // Ήδη απαντημένη
+
+        userAnswers[qIdx] = optIdx;
+        const correctIdx = questions[qIdx].correct;
+        const options = document.querySelectorAll(`#q-${qIdx} .option-item`);
+
+        options.forEach((opt, i) => {
+            opt.classList.add('locked'); // Κλείδωμα όλων των επιλογών
+            if (i === correctIdx) {
+                opt.classList.add('correct'); // Πράσινο στο σωστό
+            } else if (i === optIdx) {
+                opt.classList.add('wrong'); // Κόκκινο στο λάθος (αν επιλέχθηκε)
+            }
+        });
+    }
+
+    function changeQuestion(dir) {
+        document.getElementById(`q-${currentQuestion}`).classList.remove('active');
+        currentQuestion += dir;
+        document.getElementById(`q-${currentQuestion}`).classList.add('active');
+
+        document.getElementById('current-q-num').innerText = currentQuestion + 1;
+        document.getElementById('prev-btn').disabled = currentQuestion === 0;
+        
+        if (currentQuestion === questions.length - 1) {
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'block';
+        } else {
+            document.getElementById('next-btn').style.display = 'block';
+            document.getElementById('submit-btn').style.display = 'none';
+        }
+    }
+
+    function showResults() {
+        let score = 0;
+        questions.forEach((q, i) => {
+            if (userAnswers[i] === q.correct) score++;
+        });
+
+        document.getElementById('quiz-body').style.display = 'none';
+        document.querySelector('.controls').style.display = 'none';
+        document.querySelector('.quiz-info').style.display = 'none';
+        
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.style.display = 'block';
+        document.getElementById('score-display').innerText = `${score}/20`;
+        
+        const msg = score >= 15 ? "Συγχαρητήρια! Εξαιρετική επίδοση." : "Καλή προσπάθεια, αλλά ίσως χρειάζεται λίγη ακόμη μελέτη.";
+        document.getElementById('final-msg').innerText = msg;
+    }
+
+    window.onload = initQuiz;
+</script>
+
+</body>
+</html>
