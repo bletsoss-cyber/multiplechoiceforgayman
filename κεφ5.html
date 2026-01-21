@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mandibular Physiology Interactive Quiz - Immediate Feedback</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .option-card { transition: all 0.2s; }
+        .option-card:not(.disabled):hover { transform: translateY(-2px); background-color: #f8fafc; }
+        .correct { background-color: #d1fae5 !important; border-color: #10b981 !important; color: #065f46 !important; }
+        .incorrect { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; }
+        .missed { border: 2px dashed #10b981 !important; }
+        .disabled { cursor: default; opacity: 0.8; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen py-10 px-4 font-sans text-slate-900">
+
+    <div class="max-w-3xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-slate-200">
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">Φυσιολογία Στοματογναθικού Συστήματος</h1>
+            <p class="text-slate-600 italic">Μάθε αμέσως τη σωστή απάντηση μετά από κάθε ερώτηση.</p>
+            <div class="mt-4 flex flex-wrap gap-4 text-sm font-medium">
+                <span class="flex items-center text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                    <span class="w-2 h-2 bg-blue-600 rounded-full mr-2"></span> 25 Ερωτήσεις
+                </span>
+                <span class="flex items-center text-orange-600 bg-orange-50 px-3 py-1 rounded-full">
+                    <span class="w-2 h-2 bg-orange-600 rounded-full mr-2"></span> Πολλαπλές Σωστές (*)
+                </span>
+            </div>
+        </div>
+
+        <!-- Quiz Container -->
+        <div id="quiz-container" class="space-y-6">
+            <!-- Questions will be injected here -->
+        </div>
+
+        <!-- Final Results (Calculated dynamically) -->
+        <div class="mt-10 bg-white rounded-2xl shadow-md p-8 border border-slate-200 text-center">
+            <h2 class="text-xl font-bold mb-4">Τελική Βαθμολογία</h2>
+            <div class="text-5xl font-black text-blue-600" id="final-score">0 / 25</div>
+            <p class="text-slate-500 mt-2" id="feedback-text">Ξεκίνα το τεστ για να δεις την απόδοσή σου!</p>
+            <button onclick="location.reload()" class="mt-6 bg-slate-800 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors">Επαναφορά Τεστ</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { id: 1, text: "Ποιοι μύες θεωρούνται οι κύριοι υπεύθυνοι για την κατάσπαση (άνοιγμα) της κάτω γνάθου; (*)", options: ["Μασητήρας", "Έξω πτερυγοειδής", "Διγάστορας", "Έσω πτερυγοειδής"], correct: [1, 2], multiple: true },
+            { id: 2, text: "Ποιος υποδοχέας ανιχνεύει την αλλαγή στο μήκος του μυός και προκαλεί αντανακλαστική σύσπαση;", options: ["Τενόντιο όργανο Golgi", "Μυϊκή άτρακτος", "Υποδοχείς Pacini", "Ελεύθερες νευρικές απολήξεις"], correct: [1], multiple: false },
+            { id: 3, text: "Στο διάγραμμα Posselt, το σημείο 1 αντιπροσωπεύει:", options: ["Τη Μέγιστη Σύγκλειση (CO)", "Την Κεντρική Σχέση (CR)", "Την Θέση Ανάπαυσης", "Τη Μέγιστη Προβολή"], correct: [1], multiple: false },
+            { id: 4, text: "Η καθαρή περιστροφή του κονδύλου συμβαίνει:", options: ["Στο άνω διαμέρισμα της ΚΓΔ", "Στο κάτω διαμέρισμα της ΚΓΔ", "Κατά τη διάρκεια της μέγιστης προβολής", "Μόνο στη φάση της μάσησης"], correct: [1], multiple: false },
+            { id: 5, text: "Ποιοι μύες συμμετέχουν στην ανύψωση της γνάθου; (*)", options: ["Κροταφίτης", "Μασητήρας", "Έσω πτερυγοειδής", "Γενειοϋοειδής"], correct: [0, 1, 2], multiple: true },
+            { id: 6, text: "Το αντανακλαστικό προστασίας (ανοίγματος) ενεργοποιείται από:", options: ["Απότομη διάταση του μυός", "Έντονο πόνο ή πίεση στα δόντια", "Την ανάγκη για κατάποση", "Την κόπωση των μυών"], correct: [1], multiple: false },
+            { id: 7, text: "Ποιο σημείο του διαγράμματος Posselt αντιστοιχεί στη θέση όπου οι κοπτήρες έρχονται σε επαφή 'αιχμή προς αιχμή';", options: ["Σημείο 2", "Σημείο 3", "Σημείο 8", "Σημείο 4"], correct: [1], multiple: false },
+            { id: 8, text: "Τα όργανα Golgi έχουν ως κύρια λειτουργία:", options: ["Την πρόκληση σύσπασης σε περίπτωση διάτασης", "Την προστασία του μυός από υπερβολική τάση (χάλαση)", "Τον έλεγχο της ταχύτητας ανοίγματος", "Την αίσθηση της γεύσης"], correct: [1], multiple: false },
+            { id: 9, text: "Ο 'Κεντρικός Γεννήτορας Προτύπου' (CPG) ελέγχει:", options: ["Τις εκούσιες κινήσεις", "Τις αντανακλαστικές κινήσεις", "Τις ρυθμικές κινήσεις (μάσηση)", "Τη θέση ανάπαυσης"], correct: [2], multiple: false },
+            { id: 10, text: "Ποια κίνηση εκτελείται με την ετερόπλευρη σύσπαση του έξω πτερυγοειδούς;", options: ["Προβολή", "Οπισθοχώρηση", "Πλάγια κίνηση προς την αντίθετη πλευρά", "Κατάσπαση"], correct: [2], multiple: false },
+            { id: 11, text: "Το σημείο 8 στο διάγραμμα Posselt (Θέση Ανάπαυσης) βρίσκεται:", options: ["Πάνω στην τροχιά της κεντρικής σχέσης", "Μεταξύ της κεντρικής σχέσης και της μέγιστης σύγκλεισης", "Εντός του περιγράμματος (δεν αποτελεί ακραία θέση)", "Στο σημείο μέγιστου ανοίγματος"], correct: [2], multiple: false },
+            { id: 12, text: "Κατά την ολίσθηση (translation), ο κόνδυλος κινείται:", options: ["Μόνο γύρω από τον οριζόντιο άξονα", "Προς τα εμπρός και κάτω στο κροταφικό κύρτωμα", "Προς τα πίσω μέσα στην κροταφική γλήνη", "Παραμένει σταθερός"], correct: [1], multiple: false },
+            { id: 13, text: "Ποιος μυς ευθύνεται για την οπισθοχώρηση της γνάθου; (*)", options: ["Πρόσθιες μοίρες κροταφίτη", "Οπίσθιες (οριζόντιες) μοίρες κροταφίτη", "Διγάστορας", "Έξω πτερυγοειδής"], correct: [1, 2], multiple: true },
+            { id: 14, text: "Το σημείο 2 στο διάγραμμα Posselt αντιστοιχεί στη Μέγιστη Σύγκλειση (CO). Ποια είναι η σχέση του με το σημείο 1 (CR);", options: ["Το σημείο 2 είναι συνήθως πιο πρόσθια από το σημείο 1", "Το σημείο 2 είναι ταυτόσημο με το 1 σε όλους τους ανθρώπους", "Το σημείο 2 είναι πιο οπίσθια από το 1", "Το σημείο 2 είναι το κατώτερο σημείο του διαγράμματος"], correct: [0], multiple: false },
+            { id: 15, text: "Ο στιγμιαίος κέντρο περιστροφής:", options: ["Είναι ένα σταθερό σημείο στον κόνδυλο", "Μεταβάλλεται καθώς η γνάθος εκτελεί συνδυασμό περιστροφής και ολίσθησης", "Βρίσκεται πάντα στον έξω ακουστικό πόρο", "Αφορά μόνο τις πλάγιες κινήσεις"], correct: [1], multiple: false },
+            { id: 16, text: "Ποιοι από τους παρακάτω είναι υπερυοειδείς μύες; (*)", options: ["Μυλοϋοειδής", "Γενειοϋοειδής", "Διγάστορας", "Έσω πτερυγοειδής"], correct: [0, 1, 2], multiple: true },
+            { id: 17, text: "Το σημείο 4 του διαγράμματος Posselt αντιπροσωπεύει:", options: ["Το μέγιστο άνοιγμα", "Τη μέγιστη προβολή", "Την κεντρική σχέση", "Την αιχμή προς αιχμή θέση"], correct: [1], multiple: false },
+            { id: 18, text: "Η άνω μοίρα του έξω πτερυγοειδούς ενεργοποιείται κυρίως κατά:", options: ["Το άνοιγμα του στόματος", "Την προβολή", "Τη σύγκλειση (για σταθεροποίηση δίσκου)", "Την οπισθοχώρηση"], correct: [2], multiple: false },
+            { id: 19, text: "Ποια είναι η τυπική απόσταση (σε mm) της καθαρής περιστροφής κατά το άνοιγμα;", options: ["2-5 mm", "20-25 mm", "40-50 mm", "100 mm"], correct: [1], multiple: false },
+            { id: 20, text: "Το σχήμα του μασητικού κύκλου σε μετωπιαία όψη μοιάζει με:", options: ["Κύκλο", "Τετράγωνο", "Σταγόνα (δακρύου)", "Ευθεία γραμμή"], correct: [2], multiple: false },
+            { id: 21, text: "Η πλευρά προς την οποία μετακινείται η γνάθος κατά τη μάσηση ονομάζεται:", options: ["Πλευρά εξισορρόπησης", "Πλευρά εργασίας", "Πλευρά ηρεμίας", "Πλευρά ολίσθησης"], correct: [1], multiple: false },
+            { id: 22, text: "Ποιο νεύρο ελέγχει τους κύριους μασητήριους μύες;", options: ["Προσωπικό νεύρο (VII)", "Τρίδυμο νεύρο (V)", "Υπογλώσσιο νεύρο (XII)", "Πνευμονογαστρικό νεύρο (X)"], correct: [1], multiple: false },
+            { id: 23, text: "Το όριο μεταξύ περιστροφής και ολίσθησης στο οπίσθιο όριο του Posselt είναι το:", options: ["Σημείο 7", "Σημείο 2", "Σημείο 5", "Σημείο 4"], correct: [0], multiple: false },
+            { id: 24, text: "Στο μέγιστο άνοιγμα (Σημεία 5 και 6):", options: ["Ο κόνδυλος βρίσκεται στην πιο οπίσθια θέση του", "Οι σύνδεσμοι της ΚΓΔ είναι σε πλήρη διάταση", "Οι μασητήρες βρίσκονται σε πλήρη σύσπαση", "Τα δόντια βρίσκονται σε CO"], correct: [1], multiple: false },
+            { id: 25, text: "Ποια κίνηση προκαλείται από την αμφίπλευρη σύσπαση της κάτω μοίρας του έξω πτερυγοειδούς; (*)", options: ["Κατάσπαση", "Προβολή", "Ανύψωση", "Οπισθοχώρηση"], correct: [0, 1], multiple: true }
+        ];
+
+        let correctAnswersCount = 0;
+        const answeredQuestions = new Set();
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            questions.forEach((q, qIndex) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = 'bg-white rounded-2xl p-6 shadow-sm border border-slate-200';
+                qDiv.id = `q-block-${qIndex}`;
+
+                let optionsHtml = '';
+                q.options.forEach((opt, optIndex) => {
+                    const inputType = q.multiple ? 'checkbox' : 'radio';
+                    optionsHtml += `
+                        <label id="label-${qIndex}-${optIndex}" class="option-card flex items-center p-4 my-2 border border-slate-100 rounded-xl cursor-pointer">
+                            <input type="${inputType}" name="q-${qIndex}" value="${optIndex}" 
+                                   class="w-5 h-5 text-blue-600 focus:ring-blue-500 mr-4"
+                                   ${!q.multiple ? `onclick="checkAnswer(${qIndex}, this.value)"` : ''}>
+                            <span class="text-slate-700 font-medium">${opt}</span>
+                        </label>
+                    `;
+                });
+
+                qDiv.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-lg font-bold text-slate-800">${qIndex + 1}. ${q.text}</h3>
+                        <span id="status-${qIndex}" class="text-sm font-bold px-2 py-1 rounded hidden"></span>
+                    </div>
+                    <div class="space-y-1">${optionsHtml}</div>
+                    ${q.multiple ? `<button id="btn-${qIndex}" onclick="checkMultipleAnswer(${qIndex})" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">Έλεγχος Ερώτησης</button>` : ''}
+                    <div id="feedback-${qIndex}" class="mt-3 text-sm hidden font-medium"></div>
+                `;
+                container.appendChild(qDiv);
+            });
+        }
+
+        function checkAnswer(qIndex, selectedValue) {
+            if (answeredQuestions.has(qIndex)) return;
+            
+            const q = questions[qIndex];
+            const selectedInt = parseInt(selectedValue);
+            const isCorrect = q.correct.includes(selectedInt);
+            
+            revealResult(qIndex, [selectedInt], isCorrect);
+        }
+
+        function checkMultipleAnswer(qIndex) {
+            if (answeredQuestions.has(qIndex)) return;
+
+            const q = questions[qIndex];
+            const inputs = document.querySelectorAll(`input[name="q-${qIndex}"]:checked`);
+            const userChoices = Array.from(inputs).map(i => parseInt(i.value));
+
+            if (userChoices.length === 0) return;
+
+            const isCorrect = userChoices.length === q.correct.length && 
+                             userChoices.every(val => q.correct.includes(val));
+
+            revealResult(qIndex, userChoices, isCorrect);
+            document.getElementById(`btn-${qIndex}`).remove();
+        }
+
+        function revealResult(qIndex, userChoices, isCorrect) {
+            answeredQuestions.add(qIndex);
+            const q = questions[qIndex];
+            const statusLabel = document.getElementById(`status-${qIndex}`);
+            const feedbackBox = document.getElementById(`feedback-${qIndex}`);
+
+            // Disable all inputs for this question
+            document.querySelectorAll(`input[name="q-${qIndex}"]`).forEach(input => {
+                input.disabled = true;
+                input.parentElement.classList.add('disabled');
+            });
+
+            // Update UI colors
+            q.options.forEach((_, optIndex) => {
+                const label = document.getElementById(`label-${qIndex}-${optIndex}`);
+                const isOptionCorrect = q.correct.includes(optIndex);
+                const isOptionSelected = userChoices.includes(optIndex);
+
+                if (isOptionCorrect) {
+                    label.classList.add('correct');
+                } else if (isOptionSelected && !isOptionCorrect) {
+                    label.classList.add('incorrect');
+                }
+            });
+
+            // Status Badge
+            statusLabel.classList.remove('hidden');
+            if (isCorrect) {
+                correctAnswersCount++;
+                statusLabel.innerText = "ΣΩΣΤΟ";
+                statusLabel.classList.add('bg-green-100', 'text-green-700');
+            } else {
+                statusLabel.innerText = "ΛΑΘΟΣ";
+                statusLabel.classList.add('bg-red-100', 'text-red-700');
+                
+                feedbackBox.classList.remove('hidden');
+                feedbackBox.innerHTML = `Η σωστή απάντηση ήταν: <span class="text-green-700 font-bold">${q.correct.map(i => q.options[i]).join(', ')}</span>`;
+            }
+
+            updateTotalScore();
+        }
+
+        function updateTotalScore() {
+            document.getElementById('final-score').innerText = `${correctAnswersCount} / 25`;
+            const feedbackText = document.getElementById('feedback-text');
+            
+            if (answeredQuestions.size === 25) {
+                if (correctAnswersCount === 25) feedbackText.innerText = "Τέλεια! Είσαι πανέτοιμος.";
+                else if (correctAnswersCount >= 20) feedbackText.innerText = "Πολύ καλό σκορ! Σχεδόν άριστα.";
+                else feedbackText.innerText = "Μια επανάληψη στις σημειώσεις θα βοηθούσε.";
+            } else {
+                feedbackText.innerText = `Έχεις απαντήσει ${answeredQuestions.size} από τις 25 ερωτήσεις.`;
+            }
+        }
+
+        window.onload = renderQuiz;
+    </script>
+</body>
+</html>
