@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Κουίζ Προσθετικής: Αρθρωτήρες & Καταγραφές</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .option-btn:hover { transform: translateY(-2px); transition: all 0.2s; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+
+    <div id="quiz-container" class="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-6 md:p-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-slate-800 mb-2">Κουίζ Προσθετικής</h1>
+            <p class="text-slate-500">Αρθρωτήρες, Καταγραφές & Εγκάρσιος Γίγγλυμος Άξονας</p>
+            
+            <div class="mt-6">
+                <div class="flex justify-between text-sm text-slate-600 mb-2">
+                    <span id="progress-text">Ερώτηση 1 από 15</span>
+                    <span id="score-text">Σκορ: 0</span>
+                </div>
+                <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="bg-blue-600 h-full w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question Section -->
+        <div id="question-view">
+            <h2 id="question-text" class="text-xl font-semibold text-slate-800 mb-6 leading-tight"></h2>
+            
+            <div id="options-container" class="space-y-3">
+                <!-- Options will be injected here -->
+            </div>
+
+            <!-- Hint & Feedback Section -->
+            <div id="feedback" class="mt-6 p-4 rounded-xl hidden">
+                <p id="feedback-text" class="text-sm font-medium"></p>
+                <p id="rationale-text" class="text-sm text-slate-600 mt-2 italic"></p>
+            </div>
+
+            <div class="mt-8 flex justify-between items-center">
+                <button id="hint-btn" class="text-blue-600 text-sm font-semibold hover:underline">Εμφάνιση Βοήθειας</button>
+                <button id="next-btn" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 hidden">Επόμενη Ερώτηση</button>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div id="result-view" class="hidden text-center py-8">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6">
+                <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-2">Ολοκληρώθηκε!</h2>
+            <p id="final-score" class="text-xl text-slate-600 mb-8"></p>
+            <button onclick="location.reload()" class="bg-slate-800 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-900 transition-colors">Επανάληψη</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "Ποιος τύπος αρθρωτήρα επιτρέπει αποκλειστικά την κίνηση ανοίγματος και κλεισίματος;",
+                options: [
+                    { text: "Αρθρωτήρας μέσης τιμής", isCorrect: false, rationale: "Οι αρθρωτήρες μέσης τιμής επιτρέπουν και κάποιες πλάγιες κινήσεις βάσει προκαθορισμένων γωνιών." },
+                    { text: "Απλός ή γίγγλυμος αρθρωτήρας", isCorrect: true, rationale: "Οι απλοί αρθρωτήρες λειτουργούν ως μεντεσέδες και δεν αναπαράγουν πλάγιες ή προολισθητικές κινήσεις." },
+                    { text: "Ημιπροσαρμοζόμενος Arcon", isCorrect: false, rationale: "Οι ημιπροσαρμοζόμενοι αρθρωτήρες επιτρέπουν τη ρύθμιση και αναπαραγωγή εκκεντρικών κινήσεων." },
+                    { text: "Πλήρως προσαρμοζόμενος", isCorrect: false, rationale: "Αυτός ο τύπος αναπαράγει με ακρίβεια όλες τις δυναμικές κινήσεις της κάτω γνάθου." }
+                ],
+                hint: "Σκέψου ποιο μηχάνημα έχει τον πιο περιορισμένο βαθμό ελευθερίας κινήσεων."
+            },
+            {
+                question: "Ποια είναι η κύρια διαφορά ενός Arcon αρθρωτήρα από έναν Non-Arcon;",
+                options: [
+                    { text: "Στον Arcon ο κόνδυλος βρίσκεται στο άνω στέλεχος.", isCorrect: false, rationale: "Αυτό περιγράφει τον Non-Arcon τύπο· στον Arcon η ανατομία είναι παρόμοια με την ανθρώπινη." },
+                    { text: "Στον Arcon ο κόνδυλος βρίσκεται στο κάτω στέλεχος και η γλήνη στο άνω.", isCorrect: true, rationale: "Ο Arcon (Articulator Condyle) προσομοιώνει την ανατομική διάταξη της κροταφογναθικής διάρθρωσης." },
+                    { text: "Ο Arcon δεν δέχεται προσωπικό τόξο.", isCorrect: false, rationale: "Σχεδόν όλοι οι ημιπροσαρμοζόμενοι αρθρωτήρες δέχονται προσωπικό τόξο." },
+                    { text: "Ο Arcon χρησιμοποιείται μόνο για ολικές οδοντοστοιχίες.", isCorrect: false, rationale: "Οι Arcon αρθρωτήρες είναι ιδανικοί για ένα ευρύ φάσμα εργασιών, ειδικά στην ακίνητη προσθετική." }
+                ],
+                hint: "Θυμήσου τη λέξη 'Arcon' που προέρχεται από τις λέξεις Articulator και Condyle."
+            },
+            {
+                question: "Τι καταγράφει το προσωπικό τόξο;",
+                options: [
+                    { text: "Την κεντρική σχέση του ασθενούς.", isCorrect: false, rationale: "Η κεντρική σχέση καταγράφεται με υλικά καταγραφής σύγκλεισης." },
+                    { text: "Τη μέγιστη συναρμογή των δοντιών.", isCorrect: false, rationale: "Αυτή είναι η θέση όπου τα δόντια κουμπώνουν μεταξύ τους." },
+                    { text: "Τη σχέση της άνω γνάθου ως προς τον εγκάρσιο γίγγλυμο άξονα.", isCorrect: true, rationale: "Το προσωπικό τόξο μεταφέρει τη χωροταξική σχέση της άνω γνάθου προς το κέντρο περιστροφής των κονδύλων." },
+                    { text: "Τη γωνία Bennett.", isCorrect: false, rationale: "Η γωνία Bennett ρυθμίζεται στον αρθρωτήρα μετά την ανάρτηση." }
+                ],
+                hint: "Επικεντρώσου στη θέση της άνω γνάθου σε σχέση με το κρανίο."
+            },
+            {
+                question: "Ποιος είναι ο μέσος όρος της κονδυλικής τροχιάς σε έναν αρθρωτήρα μέσης τιμής;",
+                options: [
+                    { text: "15 μοίρες", isCorrect: false, rationale: "Αυτή η τιμή αντιστοιχεί συνήθως στον μέσο όρο της γωνίας Bennett." },
+                    { text: "30 μοίρες", isCorrect: true, rationale: "Οι περισσότεροι αρθρωτήρες μέσης τιμής έχουν σταθερή κλίση κονδυλικής τροχιάς γύρω στις 30 μοίρες." },
+                    { text: "45 μοίρες", isCorrect: false, rationale: "Αυτή η τιμή θεωρείται πολύ απότομη για μέση τιμή πληθυσμού." },
+                    { text: "0 μοίρες", isCorrect: false, rationale: "Μια μηδενική κλίση δεν αντιστοιχεί στην ανατομία της γλήνης." }
+                ],
+                hint: "Πρόκειται για μια τυπική γωνία που χρησιμοποιείται όταν δεν κάνουμε εξατομικευμένη καταγραφή."
+            },
+            {
+                question: "Τι ονομάζουμε εγκάρσιο γίγγλυμο άξονα;",
+                options: [
+                    { text: "Τη γραμμή που ενώνει την έξω γωνία του ματιού με το αυτί.", isCorrect: false, rationale: "Αυτή είναι γραμμή αναφοράς για την τοποθέτηση του τόξου." },
+                    { text: "Τη νοητή ευθεία που διέρχεται από τους κονδύλους κατά την καθαρή στροφική κίνηση.", isCorrect: true, rationale: "Ο άξονας αυτός επιτρέπει στη γνάθο να ανοιγοκλείνει σαν μεντεσές χωρίς μετατόπιση των κονδύλων." },
+                    { text: "Τη μέση γραμμή του προσώπου.", isCorrect: false, rationale: "Η μέση γραμμή είναι κατακόρυφος άξονας αναφοράς." },
+                    { text: "Την τροχιά που διαγράφει ο κόνδυλος στην προολίσθηση.", isCorrect: false, rationale: "Αυτή ονομάζεται κονδυλική διαδρομή ή τροχιά." }
+                ],
+                hint: "Σκέψου την κίνηση περιστροφής στην αρχή του ανοίγματος του στόματος."
+            },
+            {
+                question: "Γιατί είναι απαραίτητο να αφαιρούμε τις φυσαλίδες από τα εκμαγεία μελέτης;",
+                options: [
+                    { text: "Για να φαίνονται πιο όμορφα.", isCorrect: false, rationale: "Η αισθητική παίζει ρόλο, αλλά ο κύριος λόγος είναι η λειτουργική ακρίβεια." },
+                    { text: "Για να μην σπάσουν κατά την ανάρτηση.", isCorrect: false, rationale: "Οι φυσαλίδες δεν επηρεάζουν σημαντικά την αντοχή." },
+                    { text: "Για να διασφαλιστεί η σωστή εφαρμογή των καταγραφών και της σύγκλεισης.", isCorrect: true, rationale: "Μια μικρή φυσαλίδα στη μασητική επιφάνεια εμποδίζει το σωστό κλείσιμο των εκμαγείων." },
+                    { text: "Για να στεγνώσει πιο γρήγορα ο γύψος.", isCorrect: false, rationale: "Η αφαίρεση δεν επηρεάζει τον χρόνο πήξης." }
+                ],
+                hint: "Σκέψου πώς μια μικρή προεξοχή γύψου επηρεάζει την επαφή των δοντιών."
+            },
+            {
+                question: "Ποιο εργαλείο χρησιμοποιείται για τον προσδιορισμό του ακριβούς (κινηματικού) γίγγλυμου άξονα;",
+                options: [
+                    { text: "Ωτιαίο προσωπικό τόξο", isCorrect: false, rationale: "Το ωτιαίο τόξο χρησιμοποιεί τον ανατομικό άξονα βάσει μέσων τιμών." },
+                    { text: "Κινηματικό προσωπικό τόξο", isCorrect: true, rationale: "Το κινηματικό τόξο επιτρέπει την εύρεση του ακριβούς κέντρου περιστροφής των κονδύλων." },
+                    { text: "Γοτθικό τόξο", isCorrect: false, rationale: "Το γοτθικό τόξο είναι μέθοδος καταγραφής της κεντρικής σχέσης." },
+                    { text: "Διαβήτης", isCorrect: false, rationale: "Ο διαβήτης δεν χρησιμοποιείται για τον προσδιορισμό του άξονα." }
+                ],
+                hint: "Ο όρος 'κινηματικό' υποδηλώνει τη μελέτη της κίνησης."
+            },
+            {
+                question: "Σε ποιες περιπτώσεις ενδείκνυται η χρήση πλήρως προσαρμοζόμενου αρθρωτήρα;",
+                options: [
+                    { text: "Για μια απλή στεφάνη.", isCorrect: false, rationale: "Θα ήταν υπερβολικό και χρονοβόρο." },
+                    { text: "Για σύνθετα περιστατικά ολικής αποκατάστασης στόματος.", isCorrect: true, rationale: "Όταν πρέπει να ανακατασκευαστεί όλη η σύγκλειση, απαιτείται η μέγιστη δυνατή ακρίβεια." },
+                    { text: "Μόνο για διαγνωστικά εκμαγεία.", isCorrect: false, rationale: "Για απλή διάγνωση αρκεί συνήθως ένας ημιπροσαρμοζόμενος." },
+                    { text: "Όταν δεν έχουμε πάρει αποτυπώματα.", isCorrect: false, rationale: "Κανένας αρθρωτήρας δεν λειτουργεί χωρίς εκμαγεία." }
+                ],
+                hint: "Σκέψου την πιο απαιτητική προσθετική εργασία."
+            },
+            {
+                question: "Τι αντιπροσωπεύει η κορυφή του 'Γοτθικού Τόξου' στην ενδοστοματική ιχνογράφηση;",
+                options: [
+                    { text: "Τη μέγιστη διάνοιξη του στόματος.", isCorrect: false, rationale: "Η ιχνογράφηση γίνεται σε οριζόντιο επίπεδο." },
+                    { text: "Την Κεντρική Σχέση.", isCorrect: true, rationale: "Η κορυφή του βέλους δείχνει τη θέση όπου οι κόνδυλοι είναι σωστά τοποθετημένοι στις γλήνες." },
+                    { text: "Την θέση ανάπαυσης.", isCorrect: false, rationale: "Στη θέση ανάπαυσης τα δόντια δεν έρχονται σε επαφή με την πλάκα." },
+                    { text: "Την πλάγια κίνηση Bennett.", isCorrect: false, rationale: "Οι πλάγιες κινήσεις αποτελούν τις πλευρές του τόξου." }
+                ],
+                hint: "Είναι το σημείο αναφοράς από το οποίο ξεκινούν όλες οι πλάγιες κινήσεις."
+            },
+            {
+                question: "Ποιο είναι το κύριο μειονέκτημα της μικρής απόστασης από τον άξονα περιστροφής στους απλούς αρθρωτήρες;",
+                options: [
+                    { text: "Το μηχάνημα είναι πολύ βαρύ.", isCorrect: false, rationale: "Αντιθέτως, είναι συνήθως πολύ ελαφριοί." },
+                    { text: "Προκαλείται σφάλμα στο τόξο κλεισίματος και πρόωρες επαφές.", isCorrect: true, rationale: "Η διαφορά της ακτίνας περιστροφής οδηγεί σε ανακριβή σύγκλειση." },
+                    { text: "Δεν μπορούμε να χρησιμοποιήσουμε γύψο.", isCorrect: false, rationale: "Όλοι οι αρθρωτήρες χρησιμοποιούν γύψο για τη στερέωση." },
+                    { text: "Είναι πολύ ακριβοί.", isCorrect: false, rationale: "Είναι οι πιο οικονομικοί αρθρωτήρες." }
+                ],
+                hint: "Σκέψου πώς αλλάζει η τροχιά ενός κύκλου όταν μικραίνει η ακτίνα του."
+            },
+            {
+                question: "Ποιο υλικό θεωρείται κατάλληλο για την καταγραφή της Κεντρικής Σχέσης;",
+                options: [
+                    { text: "Μόνο απλό νερό.", isCorrect: false, rationale: "Το νερό δεν μπορεί να καταγράψει σχήμα." },
+                    { text: "Φύλλα μαλακού κεριού ή πολυβινυλσιλοξάνη (σιλικόνη).", isCorrect: true, rationale: "Αυτά τα υλικά προσφέρουν σταθερότητα και ακρίβεια." },
+                    { text: "Γύψος ανάρτησης.", isCorrect: false, rationale: "Ο γύψος χρησιμοποιείται για στερέωση στον αρθρωτήρα." },
+                    { text: "Χαρτί άρθρωσης.", isCorrect: false, rationale: "Το χαρτί δείχνει σημεία επαφής, δεν καταγράφει θέση." }
+                ],
+                hint: "Χρειάζεσαι υλικό που μαλακώνει και μετά σκληραίνει."
+            },
+            {
+                question: "Στους αρθρωτήρες Non-Arcon, τι συμβαίνει με τη γωνία της κονδυλικής τροχιάς όταν ανοίγουμε το μηχάνημα;",
+                options: [
+                    { text: "Παραμένει σταθερή ως προς την άνω γνάθο.", isCorrect: false, rationale: "Αυτό συμβαίνει στους Arcon αρθρωτήρες." },
+                    { text: "Μεταβάλλεται ως προς το επίπεδο της άνω γνάθου.", isCorrect: true, rationale: "Λόγω κατασκευής, το άνοιγμα αλλάζει τη σχέση της γλήνης με το άνω στέλεχος." },
+                    { text: "Μηδενίζεται αυτόματα.", isCorrect: false, rationale: "Η γωνία δεν μηδενίζεται, απλά αλλάζει η κλίση της." },
+                    { text: "Δεν υπάρχει κονδυλική τροχιά.", isCorrect: false, rationale: "Όλοι οι ημιπροσαρμοζόμενοι έχουν κονδυλική τροχιά." }
+                ],
+                hint: "Σκέψου ότι ο μηχανισμός της γλήνης είναι συνδεδεμένος με το κάτω στέλεχος."
+            },
+            {
+                question: "Ποιος είναι ο στόχος της 'παντογραφικής' καταγραφής;",
+                options: [
+                    { text: "Η μέτρηση του πάχους των δοντιών.", isCorrect: false, rationale: "Μετριέται με παχύμετρο." },
+                    { text: "Η τρισδιάστατη καταγραφή όλων των οριακών κινήσεων της γνάθου.", isCorrect: true, rationale: "Ο παντογράφος ρυθμίζει τους πλήρως προσαρμοζόμενους αρθρωτήρες." },
+                    { text: "Η λήψη φωτογραφιών.", isCorrect: false, rationale: "Είναι μηχανική ή ψηφιακή καταγραφή κίνησης." },
+                    { text: "Η επιλογή του χρώματος.", isCorrect: false, rationale: "Η χρωματοληψία είναι ανεξάρτητη." }
+                ],
+                hint: "Είναι η πιο εξελιγμένη μέθοδος καταγραφής των κινήσεων."
+            },
+            {
+                question: "Σε έναν ημιπροσαρμοζόμενο αρθρωτήρα, ποια γωνία ρυθμίζουμε με την πλάγια καταγραφή;",
+                options: [
+                    { text: "Την κονδυλική τροχιά.", isCorrect: false, rationale: "Ρυθμίζεται συνήθως με την προολισθητική καταγραφή." },
+                    { text: "Τη γωνία Bennett.", isCorrect: true, rationale: "Η πλάγια κίνηση επιτρέπει τον υπολογισμό της μετατόπισης του κόνδύλου." },
+                    { text: "Την κοπτική καθοδήγηση.", isCorrect: false, rationale: "Ρυθμίζεται από τα δόντια ή την κοπτική πλάκα." },
+                    { text: "Τη γωνία του Camper.", isCorrect: false, rationale: "Είναι ανατομική γραμμή αναφοράς." }
+                ],
+                hint: "Σχετίζεται με την πλάγια κίνηση της γνάθου."
+            },
+            {
+                question: "Ποιο είναι το πρώτο βήμα για τη σωστή ανάρτηση των εκμαγείων;",
+                options: [
+                    { text: "Η ανάρτηση του κάτω εκμαγείου.", isCorrect: false, rationale: "Συνήθως ξεκινάμε με την άνω γνάθο." },
+                    { text: "Η μεταφορά της άνω γνάθου με το προσωπικό τόξο.", isCorrect: true, rationale: "Το προσωπικό τόξο ορίζει τη θέση της άνω γνάθου ως προς τον άξονα." },
+                    { text: "Το γυάλισμα των εκμαγείων.", isCorrect: false, rationale: "Είναι το τελευταίο βήμα παρουσίασης." },
+                    { text: "Η επιλογή της γωνίας Bennett.", isCorrect: false, rationale: "Η ρύθμιση γίνεται μετά την ανάρτηση." }
+                ],
+                hint: "Σκέψου ποιο εργαλείο συνδέει τον ασθενή με τον αρθρωτήρα."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const progressText = document.getElementById('progress-text');
+        const scoreText = document.getElementById('score-text');
+        const progressBar = document.getElementById('progress-bar');
+        const feedback = document.getElementById('feedback');
+        const feedbackText = document.getElementById('feedback-text');
+        const rationaleText = document.getElementById('rationale-text');
+        const nextBtn = document.getElementById('next-btn');
+        const hintBtn = document.getElementById('hint-btn');
+        const resultView = document.getElementById('result-view');
+        const questionView = document.getElementById('question-view');
+        const finalScore = document.getElementById('final-score');
+
+        function loadQuestion() {
+            answered = false;
+            feedback.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            hintBtn.classList.remove('hidden');
+            
+            const q = quizData[currentQuestion];
+            questionText.innerText = q.question;
+            progressText.innerText = `Ερώτηση ${currentQuestion + 1} από ${quizData.length}`;
+            progressBar.style.width = `${((currentQuestion + 1) / quizData.length) * 100}%`;
+            
+            optionsContainer.innerHTML = '';
+            q.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full text-left p-4 rounded-xl border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition-all text-slate-700 font-medium";
+                btn.innerText = option.text;
+                btn.onclick = () => selectOption(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function selectOption(index, btn) {
+            if (answered) return;
+            answered = true;
+            
+            const q = quizData[currentQuestion];
+            const isCorrect = q.options[index].isCorrect;
+            
+            if (isCorrect) {
+                score++;
+                btn.classList.replace('border-slate-200', 'border-green-500');
+                btn.classList.add('bg-green-50');
+                feedbackText.innerText = "Σωστό!";
+                feedbackText.className = "text-green-600 font-bold";
+                feedback.classList.replace('bg-red-50', 'bg-green-50');
+            } else {
+                btn.classList.replace('border-slate-200', 'border-red-500');
+                btn.classList.add('bg-red-50');
+                feedbackText.innerText = "Λάθος.";
+                feedbackText.className = "text-red-600 font-bold";
+                feedback.classList.add('bg-red-50');
+                
+                // Show the correct one
+                Array.from(optionsContainer.children).forEach((child, i) => {
+                    if (q.options[i].isCorrect) {
+                        child.classList.add('border-green-500', 'bg-green-50');
+                    }
+                });
+            }
+            
+            rationaleText.innerText = q.options[index].rationale;
+            feedback.classList.remove('hidden');
+            nextBtn.classList.remove('hidden');
+            hintBtn.classList.add('hidden');
+            scoreText.innerText = `Σκορ: ${score}`;
+        }
+
+        hintBtn.onclick = () => {
+            alert(quizData[currentQuestion].hint);
+        };
+
+        nextBtn.onclick = () => {
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        };
+
+        function showResults() {
+            questionView.classList.add('hidden');
+            resultView.classList.remove('hidden');
+            finalScore.innerText = `Το σκορ σου είναι ${score} στις ${quizData.length}`;
+            progressText.innerText = "Ολοκληρώθηκε";
+        }
+
+        // Init
+        loadQuestion();
+    </script>
+</body>
+</html>
