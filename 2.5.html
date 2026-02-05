@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Ενδοδοντίας: Υλικά & Συστάσεις</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .score-box { text-align: center; font-size: 1.2em; margin-bottom: 20px; font-weight: bold; color: #27ae60; display: none; }
+        .question-card { margin-bottom: 25px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #fafafa; }
+        .question-title { font-weight: bold; margin-bottom: 10px; font-size: 1.1em; }
+        .options label { display: block; margin-bottom: 8px; cursor: pointer; padding: 8px; border-radius: 4px; transition: background 0.2s; }
+        .options label:hover { background-color: #e8f4fd; }
+        input[type="radio"] { margin-right: 10px; }
+        .btn { display: block; width: 100%; padding: 15px; background-color: #3498db; color: white; border: none; border-radius: 5px; font-size: 1.1em; cursor: pointer; margin-top: 20px; }
+        .btn:hover { background-color: #2980b9; }
+        .feedback { margin-top: 10px; font-size: 0.9em; font-weight: bold; }
+        .correct { color: #27ae60; }
+        .incorrect { color: #c0392b; }
+        .explanation { font-size: 0.85em; color: #666; margin-top: 5px; font-style: italic; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Quiz Υλικά Ενδοδοντίας (Hard Mode)</h1>
+    <p style="text-align: center; color: #7f8c8d;">Ερωτήσεις βασισμένες σε ποσοστά, χημική σύσταση και ιδιότητες.</p>
+    
+    <div id="quiz-container">
+        </div>
+
+    <button class="btn" onclick="checkAnswers()">Υποβολή Απαντήσεων</button>
+    <div id="score-display" class="score-box"></div>
+</div>
+
+<script>
+    const questions = [
+        {
+            q: "Ποιο είναι το pH του MTA (Mineral Trioxide Aggregate);",
+            options: ["10.5", "11.5", "12.5", "13.5"],
+            answer: 2,
+            note: "Το MTA είναι πολύ αλκαλικό με pH=12.5."
+        },
+        {
+            q: "Ποιος είναι ο μέσος χρόνος πήξης του MTA;",
+            options: ["2 ώρες", "4 ώρες", "6 ώρες", "24 ώρες"],
+            answer: 1,
+            note: "Η πλήρης στερεοποίηση διαρκεί κατά μέσο όρο 4 ώρες."
+        },
+        {
+            q: "Ποιο είναι το ποσοστό του Οξειδίου του Ψευδαργύρου στη σύνθεση των κώνων γουταπέρκας;",
+            options: ["19-22%", "42%", "59-75%", "80-90%"],
+            answer: 2,
+            note: "Οι κώνοι περιέχουν κυρίως Οξείδιο Ψευδαργύρου (59-75%) και λιγότερη γουταπέρκα."
+        },
+        {
+            q: "Ποιο είναι το ποσοστό της καθαρής γουταπέρκας (matrix) στους κώνους;",
+            options: ["19-22%", "30-35%", "59-75%", "1-4%"],
+            answer: 0,
+            note: "Η καθαρή γουταπέρκα αποτελεί μόνο το 19-22%."
+        },
+        {
+            q: "Σε ποια θερμοκρασία μαλακώνει η γουταπέρκα;",
+            options: ["40-45°C", "60-65°C", "80-85°C", "100°C"],
+            answer: 1,
+            note: "Μαλακώνει στους 60-65°C και τήκεται στους 100°C."
+        },
+        {
+            q: "Ποιο συστατικό προστίθεται στο φύραμα Grossman για να αυξήσει την πλαστικότητα;",
+            options: ["Sodium borate", "Staybelite resin", "Bismuth subcarbonate", "Eugenol"],
+            answer: 1,
+            note: "Η ρητίνη Staybelite (27%) βελτιώνει την πλαστικότητα."
+        },
+        {
+            q: "Ποιο είναι το ποσοστό του Οξειδίου του Ψευδαργύρου στη σκόνη του φυράματος Grossman;",
+            options: ["27%", "42%", "59%", "75%"],
+            answer: 1,
+            note: "Στο φύραμα Grossman, το ZnO είναι 42% (σε αντίθεση με τους κώνους που είναι περισσότερο)."
+        },
+        {
+            q: "Ποιο υλικό προστίθεται στο φύραμα Grossman για ακτινοσκιερότητα (εκτός του Barium sulphate);",
+            options: ["Άργυρος", "Bismuth subcarbonate", "Titanium dioxide", "Sodium borate"],
+            answer: 1,
+            note: "Περιέχει Bismuth subcarbonate (15%) και Barium sulphate (15%)."
+        },
+        {
+            q: "Τι ρόλο παίζει το Sodium Borate (Βορικό νάτριο) στο φύραμα Grossman;",
+            options: ["Επιταχυντής πήξης", "Επιβραδυντής πήξης", "Αυξάνει την ακτινοσκιερότητα", "Βελτιώνει τη ροή"],
+            answer: 1,
+            note: "Το άνυδρο βορικό νάτριο (1%) λειτουργεί ως επιβραδυντής της πήξης."
+        },
+        {
+            q: "Ποιο είναι το πάχος της ζώνης νέκρωσης που προκαλεί το Υδροξείδιο του Ασβεστίου;",
+            options: ["0.5-1mm", "1-1.5mm", "2-2.5mm", "3mm"],
+            answer: 1,
+            note: "Προκαλεί ζώνη νέκρωσης πάχους περίπου 1-1.5mm."
+        },
+        {
+            q: "Ποιο συστατικό των παλαιότερων φυραμάτων (τύπου Rickert) προκαλούσε δυσχρωμία;",
+            options: ["Βισμούθιο", "Άργυρος", "Βάριο", "Ευγενόλη"],
+            answer: 1,
+            note: "Ο άργυρος προκαλούσε μαύρισμα του δοντιού."
+        },
+        {
+            q: "Σε ποια κατηγορία ανήκει το φύραμα AH Plus;",
+            options: ["Πολυβινυλική ρητίνη", "Εποξυ-αμινική ρητίνη", "Σιλικονούχο", "Υαλοϊονομερές"],
+            answer: 1,
+            note: "Είναι εποξυ-αμινική ρητίνη (epoxy-amine resin)."
+        },
+        {
+            q: "Ποιο είναι το ποσοστό των αλάτων βαρέων μετάλλων στους κώνους γουταπέρκας;",
+            options: ["1-17%", "19-22%", "40-50%", "59-75%"],
+            answer: 0,
+            note: "Τα άλατα βαρέων μετάλλων κυμαίνονται από 1 έως 17%."
+        },
+        {
+            q: "Τι τύπου φύραμα είναι το Roeko Seal (RSA);",
+            options: ["Υαλοϊονομερές", "Πολυδιμεθυλοσιλοξάνη (Σιλικόνη)", "Ρητινώδες", "Οξειδίου Ψευδαργύρου"],
+            answer: 1,
+            note: "Ανήκει στις πολυδιμεθυλοσιλοξάνες (σιλικόνες)."
+        },
+        {
+            q: "Τι προκαλεί η χρήση διαλυτών όπως χλωροφόρμιο ή ξυλόλη στη γουταπέρκα;",
+            options: ["Την κάνει πιο σκληρή", "Την μαλακώνει", "Την κάνει εύθραυστη", "Δεν την επηρεάζει"],
+            answer: 1,
+            note: "Χρησιμοποιούνται για να μαλακώσουν τη γουταπέρκα (softened gutta-percha)."
+        },
+        {
+            q: "Ποιο χημικό στοιχείο του Resilon το καθιστά ακτινοσκιερό;",
+            options: ["Βάριο", "Βισμούθιο & Βάριο", "Οξυ-χλωριούχο βισμούθιο & Βιοδραστική ύαλος", "Άργυρος"],
+            answer: 2,
+            note: "Περιέχει βιοδραστική ύαλο, οξυ-χλωριούχο βισμούθιο και θειικό βάριο."
+        },
+        {
+            q: "Ποιο είναι το οργανικό μέρος του Resilon;",
+            options: ["Trans-πολυϊσοπρένιο", "Πολυκαπρολακτόνη", "Bis-GMA", "Ευγενόλη"],
+            answer: 1,
+            note: "Το οργανικό μέρος είναι θερμοπλαστικό συνθετικό πολυμερές (πολυκαπρολακτόνη)."
+        },
+        {
+            q: "Η κρυσταλλική μορφή της γουταπέρκας που ψύχεται ταχέως είναι η:",
+            options: ["α-φάση", "β-φάση", "γ-φάση", "δ-φάση"],
+            answer: 1,
+            note: "Η ταχεία ψύξη δίνει τη β-φάση (κρυσταλλική). Η αργή ψύξη δίνει την α-φάση."
+        },
+        {
+            q: "Ποια είναι η χημική βάση του υλικού Tubliseal;",
+            options: ["Ρητίνη", "Οξείδιο ψευδαργύρου - Ευγενόλη", "Υδροξείδιο ασβεστίου", "Σιλικόνη"],
+            answer: 1,
+            note: "Είναι φύραμα οξειδίου του ψευδαργύρου και ευγενόλης δύο παστών."
+        },
+        {
+            q: "Ποιο φυραμα απελευθερώνει φορμαλδεΰδη κατά την πήξη;",
+            options: ["AH Plus", "AH26", "Grossman", "Sealapex"],
+            answer: 1,
+            note: "Το AH26 απελευθερώνει φορμαλδεΰδη (3.9 ppm), ενώ το AH Plus ελάχιστη έως καθόλου."
+        },
+        {
+            q: "Τι ποσοστό ευγενόλης περιέχει το υγρό του φυράματος Grossman;",
+            options: ["50%", "75%", "90%", "100%"],
+            answer: 3,
+            note: "Το υγρό είναι 100% Ευγενόλη (Eugenol)."
+        },
+        {
+            q: "Ποιο από τα παρακάτω φυράματα είναι ρητίνη πολυβινυλίου;",
+            options: ["Diaket", "AH Plus", "Sealapex", "Ketac Endo"],
+            answer: 0,
+            note: "Το Diaket είναι πολυβινυλική ρητίνη."
+        },
+        {
+            q: "Ποιο υλικό χρησιμοποιεί HEMA (υδροξυ-αιθυλ-μεθακρυλικό) ως συγκολλητικό;",
+            options: ["MTA", "Resilon / Epiphany", "Γουταπέρκα", "Grossman"],
+            answer: 1,
+            note: "Το σύστημα Resilon/Epiphany χρησιμοποιεί primer με HEMA."
+        },
+        {
+            q: "Ποιο είναι το κύριο μειονέκτημα των φυραμάτων με βάση το Υδροξείδιο του Ασβεστίου (π.χ. Sealapex);",
+            options: ["Τοξικότητα", "Δυσχρωμία", "Διαλυτότητα", "Δυσκολία ανάμειξης"],
+            answer: 2,
+            note: "Έχουν θέμα με τη διαλυτότητα, καθώς πρέπει να διαλυθούν για να απελευθερώσουν Ca(OH)2."
+        },
+        {
+            q: "Τι ποσοστό κεριού ή ρητίνης περιέχουν οι κώνοι γουταπέρκας;",
+            options: ["1-4%", "10%", "20%", "40%"],
+            answer: 0,
+            note: "Περιέχουν 1-4% κερί ή ρητίνη για πλαστικοποίηση."
+        },
+        {
+            q: "Ποιο συστατικό του MTA ευθύνεται για την ακτινοσκιερότητα;",
+            options: ["Πυριτικό τριασβέστιο", "Αργιλικό τριασβέστιο", "Οξείδιο του βισμουθίου", "Οξείδιο του ασβεστίου"],
+            answer: 2,
+            note: "Το οξείδιο του βισμουθίου προστίθεται για να φαίνεται στην ακτινογραφία."
+        },
+        {
+            q: "Ποια είναι η επίδραση της ακετόνης ή αλκοόλης στους κώνους γουταπέρκας;",
+            options: ["Αποστείρωση χωρίς αλλαγές", "Διόγκωση και παραμόρφωση", "Διάλυση", "Σκλήρυνση"],
+            answer: 1,
+            note: "Προκαλούν διόγκωση (swelling) και πρέπει να αποφεύγονται."
+        },
+        {
+            q: "Τι τύπου πολυμερές είναι η φυσική γουταπέρκα;",
+            options: ["Cis-πολυϊσοπρένιο", "Trans-πολυϊσοπρένιο", "Πολυβινυλοχλωρίδιο", "Πολυαιθυλένιο"],
+            answer: 1,
+            note: "Είναι το trans-ισομερές (το cis είναι το φυσικό ελαστικό)."
+        },
+        {
+            q: "Ποιο φύραμα περιέχει εξαμίνη;",
+            options: ["AH Plus", "AH26", "Tubliseal", "Apexit"],
+            answer: 1,
+            note: "Το AH26 περιέχει εξαμίνη, η οποία διασπάται σε φορμαλδεΰδη."
+        },
+        {
+            q: "Ποιο είναι το βασικό συστατικό της σκόνης του Sealapex;",
+            options: ["Οξείδιο ψευδαργύρου", "Οξείδιο ασβεστίου", "Ρητίνη Bis-GMA", "Βιοδραστική ύαλος"],
+            answer: 1,
+            note: "Περιέχει Οξείδιο του Ασβεστίου το οποίο αντιδρά για να δώσει υδροξείδιο."
+        }
+    ];
+
+    function loadQuiz() {
+        const container = document.getElementById('quiz-container');
+        questions.forEach((q, index) => {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            
+            let optionsHtml = '';
+            q.options.forEach((opt, i) => {
+                optionsHtml += `
+                    <label>
+                        <input type="radio" name="q${index}" value="${i}">
+                        ${opt}
+                    </label>
+                `;
+            });
+
+            card.innerHTML = `
+                <div class="question-title">${index + 1}. ${q.q}</div>
+                <div class="options">${optionsHtml}</div>
+                <div id="feedback-${index}" class="feedback"></div>
+                <div id="explain-${index}" class="explanation">Σημείωση: ${q.note}</div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function checkAnswers() {
+        let score = 0;
+        questions.forEach((q, index) => {
+            const selected = document.querySelector(`input[name="q${index}"]:checked`);
+            const feedback = document.getElementById(`feedback-${index}`);
+            const explanation = document.getElementById(`explain-${index}`);
+            
+            explanation.style.display = 'block';
+
+            if (selected) {
+                if (parseInt(selected.value) === q.answer) {
+                    score++;
+                    feedback.innerHTML = '<span class="correct">✔ Σωστό!</span>';
+                } else {
+                    feedback.innerHTML = `<span class="incorrect">✖ Λάθος. Η σωστή απάντηση είναι: ${q.options[q.answer]}</span>`;
+                }
+            } else {
+                feedback.innerHTML = `<span class="incorrect">✖ Δεν απαντήθηκε. Σωστό: ${q.options[q.answer]}</span>`;
+            }
+        });
+
+        const resultDiv = document.getElementById('score-display');
+        resultDiv.style.display = 'block';
+        resultDiv.innerText = `Το σκορ σου: ${score} / ${questions.length}`;
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    // Load quiz on start
+    loadQuiz();
+</script>
+
+</body>
+</html>
